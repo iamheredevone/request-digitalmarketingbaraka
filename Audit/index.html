@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Audit Branding</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- [HEADER] Title + Logo -->
+    <div class="header-section">
+      <h2>Form Audit Branding</h2>
+      <div class="logo-container">
+        <img
+          src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png"
+          class="logo"
+          alt="Logo Baraka Express"
+        >
+      </div>
+    </div>
+
+    <!-- [FORM CONTENT] -->
+    <div id="form-content">
+      <label for="kodeTop">Kode TOP</label>
+      <input type="text" id="kodeTop" placeholder="Contoh: 001CPY">
+
+      <label for="port">Nama Port</label>
+      <select id="port">
+        <option value="" disabled selected>-- Pilih Lokasi Port --</option>
+        <option value="PORT B LAMPUNG">PORT B LAMPUNG</option>
+        <option value="PORT BANDUNG">PORT BANDUNG</option>
+        <option value="PORT BANJARMASIN">PORT BANJARMASIN</option>
+        <option value="PORT BOGOR">PORT BOGOR</option>
+        <option value="PORT CIKARANG">PORT CIKARANG</option>
+        <option value="PORT CIPAYUNG">PORT CIPAYUNG</option>
+        <option value="PORT DELISERDANG">PORT DELISERDANG</option>
+        <option value="PORT JEMBRANAPORT">PORT JEMBRANA</option>
+        <option value="PORT KALIWUNGU">PORT KALIWUNGU</option>
+        <option value="PORT LEGUNDI">PORT LEGUNDI</option>
+        <option value="PORT MADIUN">PORT MADIUN</option>
+        <option value="PORT MAKASSAR">PORT MAKASSAR</option>
+        <option value="PORT MARUNDA">PORT MARUNDA</option>
+        <option value="PORT PALEMBANG">PORT PALEMBANG</option>
+        <option value="PORT PEJAGAN">PORT PEJAGAN</option>
+        <option value="PORT PEKANBARU">PORT PEKANBARU</option>
+        <option value="PORT PONTIANAK">PORT PONTIANAK</option>
+        <option value="PORT PROBOLINGGO">PORT PROBOLINGGO</option>
+        <option value="PORT SOLOK">PORT SOLOK</option>
+        <option value="PORT TANGERANG">PORT TANGERANG</option>
+        <option value="PORT BALIKPAPAN">PORT BALIKPAPAN</option>
+      </select>
+
+      <label for="auditor">Nama Auditor</label>
+      <input type="text" id="auditor" placeholder="Nama staf pemeriksa">
+
+      <label for="tanggalAudit">Tanggal Audit</label>
+      <input type="date" id="tanggalAudit">
+
+      <!-- [DYNAMIC] Pertanyaan dibuat oleh script.js -->
+      <div id="questions-container"></div>
+
+      <!-- [PHOTO INPUT] -->
+      <label for="fotoFile">Ambil Foto Bukti</label>
+      <input type="file" id="fotoFile" accept="image/*" capture="camera">
+
+      <div class="example-wrap">
+        <div class="example-title">Contoh foto bukti:</div>
+        <img
+          id="examplePhoto"
+          class="example-photo"
+          src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1770953989/WhatsApp_Image_2026-02-13_at_10.24.36_tg5fmi.jpg"
+          alt="Contoh Foto Bukti"
+        >
+      </div>
+
+      <!-- [MODAL] Preview -->
+      <div id="imgModal" class="img-modal" aria-hidden="true">
+        <button class="img-modal-close" type="button" id="closeModal" aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6L18 18" />
+            <path d="M18 6L6 18" />
+          </svg>
+        </button>
+
+        <div class="img-modal-content" id="modalContent">
+          <img id="modalImg" src="" alt="Preview Foto Bukti">
+          <div class="img-hint">Scroll untuk zoom, drag/scroll untuk geser</div>
+        </div>
+      </div>
+
+      <!-- [TOKEN] Hanya tampil jika token belum tersimpan di perangkat -->
+      <div id="token-wrap" style="display:none;">
+        <label for="ghToken">Token Akses (dari admin)</label>
+        <input type="password" id="ghToken" autocomplete="off" placeholder="github_pat_...">
+        <div class="example-title">Cukup diisi sekali, tersimpan di perangkat ini.</div>
+      </div>
+
+      <!-- [SUBMIT] -->
+      <button id="btn-submit" type="button">KIRIM LAPORAN SEKARANG</button>
+      <p id="loading-text" class="loading-text">Sedang mengunggah data &amp; foto...</p>
+    </div>
+
+    <!-- [SUCCESS] -->
+    <div id="success-msg">
+      <div class="icon">✔</div>
+      <h3>Berhasil dikirim!</h3>
+      <p>Laporan audit branding telah tersimpan di sistem.</p>
+      <button type="button" class="btn-reset" id="btn-reset">Isi Laporan Baru</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

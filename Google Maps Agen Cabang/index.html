@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+  <title>Permintaan Update Alamat GMaps</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div class="card">
+  <img src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" class="logo" alt="Logo">
+  <h2>Form Request GMaps</h2>
+
+  <form id="formGmaps" onsubmit="showReview(event)">
+
+    <div class="form-group" style="background: #e0f2fe; padding: 15px; border-radius: 8px; border: 1px solid #bae6fd;">
+      <label style="color: #0369a1; font-size: 15px;">Jenis Permintaan (Wajib Pilih)</label>
+      <select name="jenisPermintaan" id="jenisPermintaan" required onchange="toggleSections()" style="border-color: #7dd3fc; font-weight: bold; color: #0369a1;">
+        <option value="">-- Pilih Kebutuhan --</option>
+        <option value="Buat Maps Baru">1. Buat Maps Baru (Agen/Cabang Baru)</option>
+        <option value="Pindah Alamat">2. Perubahan Alamat & Geser Titik Maps</option>
+        <option value="Update Info">3. Update Info (No HP / Jam / Foto)</option>
+      </select>
+    </div>
+
+    <div class="section-title">Informasi Dasar Agen</div>
+    <div class="grid2 form-group">
+      <div>
+        <label>Jenis & Nama</label>
+        <div style="display: flex; gap: 5px;">
+          <select name="jenisAgen" required style="width: 40%;">
+            <option value="Agen">Agen</option>
+            <option value="Cabang">Cabang</option>
+            <option value="PORT">PORT</option>
+          </select>
+          <input name="namaAgen" placeholder="Nama..." required style="width: 60%;">
+        </div>
+      </div>
+      <div>
+        <label>Kepemilikan</label>
+        <div class="radio-group">
+          <label><input type="radio" name="kepemilikan" value="Pusat" required> Pusat</label>
+          <label><input type="radio" name="kepemilikan" value="Independent"> Independent</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2 form-group">
+      <div>
+        <label>Kode TOP</label>
+        <input type="text" name="kodeTop" placeholder="Contoh: 001JKT" required>
+      </div>
+      <div>
+        <label>Port Area</label>
+        <input type="text" name="portArea" placeholder="Contoh: Tangerang" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Nomor Telepon GMap (Opsional)</label>
+      <input type="tel" name="noTelp" placeholder="08123xxxx" pattern="[0-9]*" inputmode="numeric">
+    </div>
+
+    <div id="sectionAlamatBaru" class="section-dynamic">
+      <div class="section-title" id="titleAlamatBaru">Alamat & Titik Maps Baru</div>
+      <div class="form-group">
+        <label>Link Google Maps (Titik yang benar)</label>
+        <input type="url" name="mapsBaru" id="reqMapsBaru" placeholder="https://maps.app.goo.gl/...">
+      </div>
+      <div class="form-group">
+        <label>Detail Jalan / Patokan</label>
+        <textarea name="namaJalan" id="reqJalan" rows="2" placeholder="Jl. Raya Timur No.10, Samping Indomaret..."></textarea>
+      </div>
+      <div class="grid2 form-group">
+        <div>
+          <label>Provinsi</label>
+          <select id="provinsi" name="provinsi"><option value="">Pilih</option></select>
+        </div>
+        <div>
+          <label>Kabupaten / Kota</label>
+          <select id="kabupaten" name="kabupatenKota"><option value="">Pilih</option></select>
+        </div>
+      </div>
+      <div class="grid2 form-group">
+        <div>
+          <label>Kecamatan</label>
+          <select id="kecamatan" name="kecamatan"><option value="">Pilih</option></select>
+        </div>
+        <div>
+          <label>Kelurahan / Desa</label>
+          <select id="kelurahan" name="kelurahan"><option value="">Pilih</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Kode Pos</label>
+        <input type="text" name="kodePos" id="kodePos" readonly style="background: #e2e8f0; text-align: center; font-weight: bold;">
+      </div>
+    </div>
+
+    <div id="sectionAlamatLama" class="section-dynamic" style="border-left-color: #f59e0b; background: #fffbeb;">
+      <div class="section-title" style="color: #d97706;">Data Alamat Lama (Yang Salah/Lama)</div>
+      <div class="form-group">
+        <label>Link Maps Lama</label>
+        <input type="url" name="mapsLama" placeholder="https://maps.app.goo.gl/...">
+      </div>
+      <div class="form-group">
+        <label>Alamat Teks Lama</label>
+        <textarea name="alamatLama" rows="2" placeholder="Masukkan alamat yang lama..."></textarea>
+      </div>
+    </div>
+
+    <div id="sectionUpdateInfo" class="section-dynamic" style="border-left-color: #10b981; background: #ecfdf5;">
+      <div class="section-title" style="color: #047857;">Titik Maps Saat Ini</div>
+      <div class="form-group">
+        <label>Link Maps Yang Ingin Diupdate</label>
+        <input type="url" name="mapsSaatIni" id="reqMapsSaatIni" placeholder="https://maps.app.goo.gl/...">
+      </div>
+    </div>
+
+    <div class="section-dynamic" id="sectionTambahan" style="display: block; border-left-color: #64748b; background: #f8fafc;">
+      <div class="section-title" style="color: #334155;">Informasi Lainnya</div>
+      <div class="form-group">
+        <label>Jam Operasional</label>
+        <input type="text" name="jamOperasional" placeholder="Cth: Sen-Sab: 08:00 - 17:00">
+      </div>
+      <div class="form-group">
+        <label>Keterangan Tambahan / Alasan Singkat</label>
+        <textarea name="deskripsi" rows="3" placeholder="Jelaskan request Anda (Contoh: Tambah foto banner, ganti nomor HP)"></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="btnSubmit">Kirim Request</button>
+  </form>
+</div>
+
+<div id="modalReview" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">Konfirmasi Data</div>
+    <div id="reviewText" class="review-data"></div>
+    <div class="btn-group">
+      <button type="button" class="btn-edit" onclick="document.getElementById('modalReview').style.display='none'">Kembali Edit</button>
+      <button type="button" class="btn-confirm" id="btnConfirmSend" onclick="executeSubmit()">Kirim Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastMsg" class="toast">Berhasil!</div>
+
+    <script src="wilayah.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>

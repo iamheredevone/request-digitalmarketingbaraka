@@ -1,0 +1,47 @@
+:root { --primary: #003462; --primary-hover: #00264b; --bg: #f4f7f6; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 15px; margin: 0; color: #333; }
+    
+    .card { max-width: 600px; margin: 0 auto; background: #fff; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .card img.logo { width: 100%; max-width: 250px; height: auto; margin: 0 auto 20px; display: block; }
+    h2 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 22px; }
+
+    /* Form Elements */
+    .form-group { margin-bottom: 18px; }
+    label { font-weight: 600; margin-bottom: 6px; display: block; color: var(--primary); font-size: 14px; }
+    input, textarea, select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; box-sizing: border-box; background: #fff; transition: border 0.3s; }
+    input:focus, textarea:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(0,52,98,0.1); }
+    
+    /* Grid System for Desktop, Stacks on Mobile */
+    .grid2 { display: grid; grid-template-columns: 1fr; gap: 15px; }
+    @media (min-width: 600px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+    
+    .radio-group { display: flex; gap: 15px; margin-top: 5px; }
+    .radio-group label { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; color: #333; }
+    .radio-group input { width: 18px; height: 18px; accent-color: var(--primary); margin: 0; }
+
+    /* Section Visibility */
+    .section-dynamic { display: none; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; border-left: 4px solid var(--primary); }
+    .section-title { font-weight: 700; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-size: 16px; }
+
+    /* Button */
+    button.btn-submit { width: 100%; padding: 16px; border: none; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 700; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+    button.btn-submit:hover { background: var(--primary-hover); }
+    button.btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    /* Loading Spinner */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid #fff; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; vertical-align: middle; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Toast / Modal minimalis */
+    .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); padding: 15px; box-sizing: border-box; }
+    .modal-content { background: #fff; margin: 10vh auto; padding: 25px; border-radius: 12px; width: 100%; max-width: 500px; position: relative; max-height: 80vh; overflow-y: auto; }
+    .modal-header { font-weight: 700; font-size: 18px; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .review-data { font-size: 14px; line-height: 1.5; color: #444; }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-group button { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
+    .btn-edit { background: #e2e8f0; color: #333; }
+    .btn-confirm { background: var(--primary); color: white; }
+
+    .toast { position: fixed; top: 20px; right: 20px; background: #22c55e; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; opacity: 0; transition: 0.3s; transform: translateY(-20px); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #ef4444; }

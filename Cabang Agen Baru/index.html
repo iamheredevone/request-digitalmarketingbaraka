@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <form id="formPendaftaran">
+    <div class="head">
+      <!-- GANTI src di bawah dengan string data:image/png;base64,... logo asli kamu -->
+      <img class="logo" src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" alt="Baraka Express">
+      <div class="eyebrow">Formulir Internal</div>
+      <h1>Pendaftaran Agen / Cabang Baru</h1>
+      <p>Lengkapi seluruh data di bawah ini untuk mengajukan pendaftaran agen atau cabang baru.</p>
+    </div>
+
+      <fieldset>
+        <legend>Informasi Umum</legend>
+        <div class="row">
+          <div class="field small">
+            <label>Port Area <span class="req">*</span></label>
+            <select id="tipe" required>
+              <option value="">Pilih Port Area</option>
+              <option value="PORT_BOGOR">PORT BOGOR</option>
+              <option value="PORT_SOLOK">PORT SOLOK</option>
+              <option value="PORT_CIKARANG">PORT CIKARANG</option>
+              <option value="PORT_BANDUNG">PORT BANDUNG</option>
+              <option value="PORT_DELISERDANG">PORT DELISERDANG</option>
+              <option value="PORT_LEGUNDI">PORT LEGUNDI</option>
+              <option value="PORT_JEMBRANA">PORT JEMBRANA</option>
+              <option value="PORT_MARUNDA">PORT MARUNDA</option>
+              <option value="PORT_TANGERANG">PORT TANGERANG</option>
+              <option value="PORT_CIPAYUNG">PORT CIPAYUNG</option>
+              <option value="PORT_MAKASSAR">PORT MAKASSAR</option>
+              <option value="PORT_PALEMBANG">PORT PALEMBANG</option>
+              <option value="PORT_PEKANBARU">PORT PEKANBARU</option>
+              <option value="PORT_BANJARMASIN">PORT BANJARMASIN</option>
+              <option value="PORT_KALIWUNGU">PORT KALIWUNGU</option>
+              <option value="PORT_MADIUN">PORT MADIUN</option>
+              <option value="PORT_PROBOLINGGO">PORT PROBOLINGGO</option>
+              <option value="PORT_LAMPUNG">PORT LAMPUNG</option>
+              <option value="PORT_PEJAGAN">PORT PEJAGAN</option>
+              <option value="PORT_PONTIANAK">PORT PONTIANAK</option>
+              <option value="PORT_BALIKPAPAN">PORT BALIKPAPAN</option>
+            </select>
+          </div>
+          <div class="field small">
+            <label>Tipe TOP <span class="req">*</span></label>
+            <select id="tipeTop" required>
+              <option value="">Pilih Tipe</option>
+              <option value="PORT">PORT</option>
+              <option value="Cabang">Cabang</option>
+              <option value="Agen">Agen</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Lokasi Pembukaan Agen/Cabang <span class="req">*</span></label>
+            <input type="text" id="namaAgen" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Kepemilikan <span class="req">*</span></label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="kepemilikan" value="Pusat" required> Pusat
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="kepemilikan" value="Independent"> Independent
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field small">
+            <label>Tanggal Pembukaan TOP <span class="req">*</span></label>
+            <input type="date" id="tanggalPembukaan" required>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Alamat & Kontak</legend>
+        <div class="row">
+          <div class="field">
+            <label>Alamat Lengkap (Jl. Raya Utama No.12, samping Indomaret) <span class="req">*</span></label>
+            <input type="text" id="alamat" required>
+          </div>
+          <div class="field small">
+            <label>No. Telepon/WA Aktif<span class="req">*</span></label>
+            <input type="tel" id="telepon" required>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Lokasi Wilayah</legend>
+        <div class="row">
+          <div class="field">
+            <label>Provinsi <span class="req">*</span></label>
+            <select id="provinsi" required>
+              <option value="">Memuat...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Kabupaten / Kota <span class="req">*</span></label>
+            <select id="kabupaten" required disabled>
+              <option value="">Pilih provinsi dahulu</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Kecamatan <span class="req">*</span></label>
+            <select id="kecamatan" required disabled>
+              <option value="">Pilih kabupaten/kota dahulu</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Kelurahan / Desa <span class="req">*</span></label>
+            <select id="kelurahan" required disabled>
+              <option value="">Pilih kecamatan dahulu</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field small">
+            <label>Kode Pos</label>
+            <input type="text" id="kodePos" name="kodePos" readonly placeholder="Otomatis">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Peta</legend>
+        <div class="row">
+          <div class="field">
+            <label>Link Google Maps (*Tempel link Gmap disini)</label>
+            <input type="url" id="gmaps" placeholder="https://maps.google.com/...">
+            <div class="hint">Buka Google Maps, cari lokasi, salin link "Bagikan", lalu tempel di sini.</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" id="btnSubmit">Kirim Permintaan</button>
+        <div id="msg" class="msg"></div>
+      </div>
+    </form>
+  </div>
+
+    <script src="../Design Agen Cabang/wilayah.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>

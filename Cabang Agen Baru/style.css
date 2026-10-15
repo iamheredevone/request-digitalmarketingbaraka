@@ -1,0 +1,154 @@
+  :root{
+    --bg: #EEF2F6;
+    --card: #FFFFFF;
+    --ink: #1E2A3A;
+    --muted: #6B7A90;
+    --line: #DCE3EC;
+    --accent: #1D4E89;
+    --accent-dark: #163C6B;
+    --ok-bg: #E8F6EE;
+    --ok-ink: #1E7B45;
+    --err-bg: #FCEAEA;
+    --err-ink: #B3261E;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:'Inter', system-ui, sans-serif;
+    color:var(--ink);
+    padding:32px 16px 64px;
+  }
+  .wrap{ max-width:760px; margin:0 auto; }
+  .head{ margin-bottom:24px; text-align:center; padding-bottom:20px; border-bottom:1px solid var(--line); }
+  .head .logo{
+    display:block;
+    margin:0 auto 16px;
+    max-width:240px;
+    width:100%;
+    height:auto;
+  }
+  .head .eyebrow{
+    font-size:12px; font-weight:600; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--accent);
+  }
+  .head h1{
+    font-family:'Sora', sans-serif;
+    font-size:26px; margin:6px 0 4px;
+  }
+  .head p{ margin:0; color:var(--muted); font-size:14px; }
+
+  form{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 28px 8px;
+  }
+  fieldset{
+    border:0; padding:0; margin:0 0 26px;
+  }
+  legend{
+    font-family:'Sora', sans-serif;
+    font-size:14px; font-weight:600;
+    color:var(--accent-dark);
+    padding:0 0 12px;
+    width:100%;
+    border-bottom:1px solid var(--line);
+    margin-bottom:16px;
+  }
+  .row{ display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+  .field{ flex:1 1 220px; display:flex; flex-direction:column; gap:6px; }
+  .field.small{ flex:0 1 160px; }
+  label{ font-size:13px; font-weight:600; color:var(--ink); }
+  label .req{ color:#C0392B; }
+  input[type=text], input[type=tel], input[type=url], input[type=date], select{
+    font-family:inherit;
+    font-size:16px;
+    padding:11px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#FBFCFE;
+    color:var(--ink);
+    width:100%;
+    min-height:44px;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input:focus, select:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(29,78,137,.12);
+    background:#fff;
+  }
+  input[readonly]{ background:#F0F3F7; color:var(--muted); }
+  select:disabled{ background:#F0F3F7; color:var(--muted); cursor:not-allowed; }
+
+  .radio-group{ display:flex; gap:20px; padding-top:4px; flex-wrap:wrap; }
+  .radio-option{
+    display:flex; align-items:center; gap:8px;
+    font-size:14px; cursor:pointer;
+    min-height:44px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .radio-option input{ width:18px; height:18px; accent-color:var(--accent); flex-shrink:0; }
+
+  .actions{
+    display:flex; align-items:center; gap:14px;
+    padding:20px 0 24px;
+  }
+  button{
+    font-family:inherit;
+    font-size:14px; font-weight:600;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:12px 26px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background .15s ease;
+    min-height:46px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button:hover{ background:var(--accent-dark); }
+  button:disabled{ background:#9FB3C8; cursor:not-allowed; }
+
+  .msg{
+    font-size:13px; padding:10px 14px; border-radius:8px;
+    display:none;
+  }
+  .msg.ok{ display:block; background:var(--ok-bg); color:var(--ok-ink); }
+  .msg.err{ display:block; background:var(--err-bg); color:var(--err-ink); }
+
+  .hint{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+  @media (max-width: 640px){
+    body{ padding:16px 12px 48px; }
+    .head{ margin-bottom:18px; }
+    .head h1{ font-size:21px; }
+    .head p{ font-size:13px; }
+
+    form{ padding:18px 14px 4px; border-radius:12px; }
+    fieldset{ margin-bottom:22px; }
+    legend{ font-size:13px; margin-bottom:14px; }
+
+    .row{ gap:14px; margin-bottom:14px; }
+    .field, .field.small{ flex:1 1 100%; }
+
+    .radio-group{ gap:24px; }
+
+    .actions{
+      flex-direction:column-reverse;
+      align-items:stretch;
+      gap:12px;
+      padding:16px 0 20px;
+    }
+    .actions button{ width:100%; }
+    .msg{ text-align:center; }
+  }
+
+  @media (max-width: 380px){
+    .head h1{ font-size:19px; }
+    form{ padding:16px 12px 4px; }
+    button{ padding:12px 18px; }
+  }
