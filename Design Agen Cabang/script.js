@@ -5,7 +5,7 @@
 
 // ===================== PENGATURAN =====================
 // Isi dengan URL tujuan pengiriman data (mis. Web App Google Apps Script, berakhiran /exec)
-const SCRIPT_URL = "GANTI_DENGAN_URL_WEB_APP";
+const SCRIPT_URL = "https://digitalmarketing.iamhere-devone.workers.dev/";
 
 // ===================== HELPER =====================
 const $ = (id) => document.getElementById(id);
