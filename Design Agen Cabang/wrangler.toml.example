@@ -1,0 +1,7 @@
+name = "permintaan-desain-api"
+main = "worker.js"
+compatibility_date = "2026-10-14"
+
+[vars]
+SHEET_NAME = "Permintaan"
+ALLOWED_ORIGIN = "https://USERNAME.github.io"

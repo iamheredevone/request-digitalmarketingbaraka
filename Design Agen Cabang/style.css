@@ -91,7 +91,7 @@ select:focus {
 }
 
 /* ==================================================
-   FLUID GRIDS
+   FLUID GRIDS (otomatis menyesuaikan layar)
 ================================================== */
 .grid2 {
   display: grid;
@@ -184,7 +184,7 @@ button:disabled {
 }
 
 /* ==================================================
-   HELPERS & NOTES
+   HELPERS & ALERTS
 ================================================== */
 .kodepos-input {
   font-weight: bold;
@@ -376,7 +376,9 @@ button:disabled {
    MOBILE RESPONSIVE
 ================================================== */
 @media (max-width: 600px) {
-  body { padding: 8px; }
+  body {
+    padding: 8px;
+  }
 
   .card {
     margin: 10px auto;
@@ -389,7 +391,9 @@ button:disabled {
     font-size: 19px;
   }
 
-  label { font-size: 13px; }
+  label {
+    font-size: 13px;
+  }
 
   input,
   textarea,
@@ -410,7 +414,9 @@ button:disabled {
     border-radius: 12px;
   }
 
-  .modal-header { font-size: 16px; }
+  .modal-header {
+    font-size: 16px;
+  }
 
   .design-grid {
     grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -422,7 +428,9 @@ button:disabled {
     gap: 10px;
   }
 
-  .btn-group-modal button { min-width: 100%; }
+  .btn-group-modal button {
+    min-width: 100%;
+  }
 
   .toast {
     top: 12px;
@@ -432,7 +440,9 @@ button:disabled {
 }
 
 @media (max-width: 360px) {
-  .agen-row { flex-direction: column; }
+  .agen-row {
+    flex-direction: column;
+  }
 
   .agen-row select,
   .agen-row input {
