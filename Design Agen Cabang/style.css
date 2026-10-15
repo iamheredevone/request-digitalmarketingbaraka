@@ -267,8 +267,10 @@ button:disabled {
   position: relative;
   width: 100%;
   max-width: 600px;
-  margin: 10vh auto;
+  max-height: 90vh;
+  margin: 3vh auto;
   padding: 25px;
+  overflow-y: auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -288,31 +290,48 @@ button:disabled {
   position: absolute;
   top: 15px;
   right: 20px;
+  z-index: 2;
   font-size: 28px;
   color: #64748b;
   cursor: pointer;
 }
 
-.design-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+/* ==================================================
+   DESIGN GRID - SATU KOLOM KE BAWAH
+================================================== */
+.modal-content .design-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   gap: 15px;
+  width: 100%;
 }
 
-.design-item {
-  padding: 10px;
+.modal-content .design-item {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
   text-align: center;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
+  overflow: hidden;
 }
 
-.design-item img {
+.modal-content .design-item img {
+  display: block;
   width: 100%;
-  margin-bottom: 8px;
+  max-width: 100%;
+  height: auto;
+  max-height: 320px;
+  object-fit: contain;
+  margin: 0 auto 10px;
   border-radius: 6px;
 }
 
+/* ==================================================
+   MODAL BUTTONS
+================================================== */
 .btn-group-modal {
   display: flex;
   flex-wrap: wrap;
@@ -326,6 +345,93 @@ button:disabled {
   margin: 0;
 }
 
+/* ==================================================
+   RESPONSIVE MOBILE
+================================================== */
+@media (max-width: 600px) {
+  .modal {
+    padding: 10px;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-height: 90vh;
+    margin: 2vh auto;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    font-size: 16px;
+  }
+
+  .modal-content .design-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px;
+  }
+
+  .modal-content .design-item {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .modal-content .design-item img {
+    width: 100%;
+    max-height: 300px;
+  }
+
+  .btn-group-modal {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-group-modal button {
+    min-width: 100%;
+  }
+}
+
+/* ==================================================
+   EXTRA SMALL MOBILE
+================================================== */
+@media (max-width: 360px) {
+  .modal-content {
+    padding: 12px;
+  }
+
+  .modal-content .design-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+/* FIX KHUSUS MODAL CONTOH DESIGN MOBILE */
+@media screen and (max-width: 600px) {
+  body .modal .modal-content .design-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 12px !important;
+  }
+
+  body .modal .modal-content .design-grid > .design-item {
+    display: block !important;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  body .modal .modal-content .design-grid > .design-item img {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 300px !important;
+    object-fit: contain !important;
+    margin: 0 auto 10px !important;
+  }
+}
 /* ==================================================
    SPINNER & TOAST
 ================================================== */
