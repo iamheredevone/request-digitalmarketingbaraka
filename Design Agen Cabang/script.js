@@ -115,6 +115,7 @@ function collectData() {
       : fd.get("ukuranBanner") || "";
 
   return {
+    jenisForm: "banner",
     jenisAgen: fd.get("jenisAgen") || "",
     namaAgen: (fd.get("namaAgen") || "").trim(),
     portArea: fd.get("portArea") || "",

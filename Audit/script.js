@@ -103,6 +103,7 @@ async function submitData() {
     const foto = await compressImage(fileInput.files[0]);
 
     const payload = {
+      jenisForm: 'audit',
       kodeTop: document.getElementById('kodeTop').value,
       port: portSelect.value,
       auditor: document.getElementById('auditor').value,

@@ -20,6 +20,20 @@ function resetSelect(select, placeholder) {
   select.disabled = true;
 }
 
+
+// ===================== JAM OPERASIONAL =====================
+  function getJamOperasional(tipeTop) {
+    if (tipeTop === "Cabang") {
+      return "08.00 WIB - 17.00 WIB";
+    }
+
+    if (tipeTop === "Agen") {
+      return "09.00 WIB - 17.00 WIB";
+    }
+
+    return "";
+  }
+
 // ===================== KIRIM DATA =====================
 form.addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -42,8 +56,12 @@ form.addEventListener("submit", async function (e) {
   const data = {
     jenisForm: "cabang",
 
+
     tipe: document.getElementById("tipe").value,
     tipeTop: document.getElementById("tipeTop").value,
+    jamOperasional: getJamOperasional(
+      document.getElementById("tipeTop").value
+    ),
     namaAgen: document.getElementById("namaAgen").value.trim(),
     kepemilikan: kepemilikanEl ? kepemilikanEl.value : "",
     tanggalPembukaan:
