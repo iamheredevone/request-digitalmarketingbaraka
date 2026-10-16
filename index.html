@@ -1,94 +1,187 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permintaan Cabang & Agen</title>
-
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b6c83">
+  <meta name="description" content="Portal layanan digital Baraka Express untuk cabang, agen, materi digital, dan branding.">
+  <title>Portal Layanan | Baraka Express</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
+  <div class="page">
+    <header class="site-header">
+      <a class="brand" href="#beranda" aria-label="Baraka Express - Beranda">
+        <img src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" alt="Logo Baraka Express">
+      </a>
+      <nav class="main-nav" id="mainNav">
+        <a href="#beranda">Beranda</a>
+        <a href="#layanan">Layanan</a>
+        <a href="#materi">Materi Digital</a>
+        <a href="#galeri">Galeri</a>
+        <a href="#kontak">Kontak</a>
+      </nav>
+      <a class="header-cta" href="wa.me/6282211958695" data-contact-link="whatsapp"><i class="fa-brands fa-whatsapp"></i> Hubungi Kami</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Buka navigasi" aria-expanded="false">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </header>
 
-    <main class="container">
+    <main>
+      <section class="hero" id="beranda">
+        <div class="hero-photo" aria-hidden="true">
+          <img src="assets/hero.png" alt="">
+        </div>
+        <div class="hero-content">
+          <span class="eyebrow">PORTAL LAYANAN DIGITAL</span>
+          <h1>Permintaan<br>Cabang &amp; Agen</h1>
+          <p>Solusi lengkap untuk pengajuan kebutuhan branding cabang & agen Baraka Express dalam satu portal.</p>
+          <span class="hero-line"></span>
+        </div>
+        <div class="hero-tagline" aria-hidden="true">Menghubungkan,<br>Lebih Banyak<br>Peluang</div>
+      </section>
 
-        <header class="header">
-        <img
-            src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png"
-         class="logo"
-        alt="Logo"
-        />
-        <h1>Permintaan Cabang & Agen</h1>
-            <p>
-                Selamat datang di portal layanan Permintaan cabang dan agen.
-                <br>
-                Silakan pilih menu yang ingin Anda akses.
-            </p>
-        </header>
+      <section class="services" id="layanan">
+        <a class="service-card service-blue" href="./Cabang Agen Baru/index.html">
+          <span class="service-number">01</span>
+          <span class="service-icon"><i class="fa-regular fa-file-lines"></i></span>
+          <div class="service-body">
+            <h3>Form Cabang/Agen Baru</h3>
+            <p>Pengajuan pendaftaran cabang atau agen baru.</p>
+          </div>
+          <span class="service-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+        <a class="service-card service-purple" href="./Design Agen Cabang/index.html">
+          <span class="service-number">02</span>
+          <span class="service-icon"><i class="fa-solid fa-palette"></i></span>
+          <div class="service-body">
+            <h3>Permintaan Design Cabang/Agen</h3>
+            <p>Pengajuan desain dan kebutuhan branding cabang.</p>
+          </div>
+          <span class="service-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+        <a class="service-card service-green" href="./Google Maps Agen Cabang/index.html">
+          <span class="service-number">03</span>
+          <span class="service-icon"><i class="fa-solid fa-location-dot"></i></span>
+          <div class="service-body">
+            <h3>Permintaan Google Maps Cabang/Agen</h3>
+            <p>Pengajuan pembuatan atau pembaruan lokasi cabang.</p>
+          </div>
+          <span class="service-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+        <a class="service-card service-orange" href="./Audit/index.html">
+          <span class="service-number">04</span>
+          <span class="service-icon"><i class="fa-regular fa-clipboard"></i></span>
+          <div class="service-body">
+            <h3>Laporan Audit Checklist Branding</h3>
+            <p>Akses laporan pemeriksaan standar branding cabang.</p>
+          </div>
+          <span class="service-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+      </section>
 
-        <section class="menu-grid">
+      <section class="digital" id="materi">
+        <h2>Materi Digital Baraka Express</h2>
+        <div class="digital-grid">
+          <a class="digital-card" href="https://drive.google.com/drive/folders/1X7EPyU-3JwU9NFRpWWkFwadISJvfvzV7?usp=drive_link&utm_medium=social&utm_source=heylink.me" data-placeholder-link>
+            <img class="digital-thumb" src="assets/thumb-flyer.svg" alt="">
+            <span class="digital-name">Flyer Prosedur<br>Layanan Baraka Express</span>
+            <i class="fa-solid fa-share-nodes share-icon"></i>
+          </a>
+          <a class="digital-card" href="https://drive.google.com/drive/folders/1F87XV-Ld79nkNZl31jZhDk8d3yVAUIwG?usp=sharing&utm_medium=social&utm_source=heylink.me" data-placeholder-link>
+            <img class="digital-thumb" src="assets/thumb-maskot.svg" alt="">
+            <span class="digital-name">Maskot<br>Baraka Express</span>
+            <i class="fa-solid fa-share-nodes share-icon"></i>
+          </a>
+          <a class="digital-card" href=" https://drive.google.com/drive/folders/1UYOIqJJNGRbUgfsMFktJdT07st0LfD5m?usp=sharing&utm_medium=social&utm_source=heylink.me" data-placeholder-link>
+            <img class="digital-thumb" src="assets/thumb-profile.svg" alt="">
+            <span class="digital-name">Profile Picture<br>AgBar &amp; CaBar Nasional</span>
+            <i class="fa-solid fa-share-nodes share-icon"></i>
+          </a>
+          <a class="digital-card" href="https://drive.google.com/drive/folders/1uVa290xsbYgPBCNhW5u6tRdpYsPtb9xq?usp=drive_link&utm_medium=social&utm_source=heylink.me" data-placeholder-link>
+            <img class="digital-thumb" src="assets/thumb-konten.svg" alt="">
+            <span class="digital-name">Stock Content<br>Media Sosial</span>
+            <i class="fa-solid fa-share-nodes share-icon"></i>
+          </a>
+          <a class="digital-card" href="https://sticker.ly/s/YU1BJV?utm_medium=social&utm_source=heylink.me" data-placeholder-link>
+            <img class="digital-thumb" src="assets/thumb-sticker.svg" alt="">
+            <span class="digital-name">Sticker WhatsApp<br>Bar-X</span>
+            <i class="fa-solid fa-share-nodes share-icon"></i>
+          </a>
+        </div>
+      </section>
 
-            <!-- Menu 1 -->
-            <a href="./Cabang Agen Baru/index.html" class="menu-card">
-                <div class="menu-icon blue">＋</div>
+      <section class="gallery-section" id="galeri" aria-label="Galeri Baraka Express">
+        <div class="gallery" id="gallery">
+          <div class="gallery-track" id="galleryTrack">
+            <!-- Ganti file di folder assets/ dengan foto asli cabang/agen Baraka Express. -->
+            <div class="gallery-slide"><img src="assets/Cabang Pekanbaru Utara WEB.png" alt="Kantor cabang Baraka Express saat senja"></div>
+            <div class="gallery-slide"><img src="assets/Cabang Bekasi Utara WEB.jpg" alt="Armada pengiriman Baraka Express"></div>
+            <div class="gallery-slide"><img src="assets/Agen Surabaya Manukan WEB.png" alt="Gudang dan distribusi Baraka Express"></div>
+            <div class="gallery-slide"><img src="assets/Cabang Curup WEB.jpg" alt="Layanan pelanggan Baraka Express"></div>
+            <div class="gallery-slide"><img src="assets/Cabang Mojokerto Timur WEB.png" alt="Jaringan agen Baraka Express"></div>
+          </div>
+          <button class="gallery-arrow gallery-prev" id="galleryPrev" aria-label="Gambar sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="gallery-arrow gallery-next" id="galleryNext" aria-label="Gambar berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="gallery-dots" id="galleryDots" aria-label="Pilih gambar galeri"></div>
+        </div>
+      </section>
 
-                <div class="menu-content">
-                    <h2>Form Cabang/Agen Baru</h2>
-                    <p>
-                        Pengajuan pendaftaran cabang atau agen baru.
-                    </p>
-                </div>
-
-                <span class="arrow">›</span>
-            </a>
-
-            <!-- Menu 2 -->
-            <a href="./Design Agen Cabang/index.html" class="menu-card">
-                <div class="menu-icon purple">✎</div>
-                <div class="menu-content">
-                    <h2>Permintaan Design Cabang/Agen</h2>
-                    <p>
-                        Pengajuan desain dan kebutuhan branding cabang.
-                    </p>
-                </div>
-
-                <span class="arrow">›</span>
-            </a>
-
-            <!-- Menu 3 -->
-            <a href="./Google Maps Agen Cabang/index.html" class="menu-card">
-                <div class="menu-icon green">⌖</div>
-                <div class="menu-content">
-                    <h2>Permintaan Google Maps Cabang/Agen</h2>
-                    <p>
-                        Pengajuan pembuatan atau pembaruan lokasi cabang.
-                    </p>
-                </div>
-
-                <span class="arrow">›</span>
-            </a>
-
-            <!-- Menu 4 -->
-            <a href="./Audit/index.html" class="menu-card">
-                <div class="menu-icon orange">☑</div>
-
-                <div class="menu-content">
-                    <h2>Laporan Audit Checklist Branding</h2>
-                    <p>
-                        Akses laporan pemeriksaan standar branding cabang.
-                    </p>
-                </div>
-
-                <span class="arrow">›</span>
-            </a>
-
-        </section>
-
-        <footer class="footer">
-            <span>© 2026 Digital Marketing</span>
-            <span>Crafted by <a href="#">iamnotafra1d</a>®</span>
-        </footer>
-
+      <section class="contact-section" id="kontak">
+        <div class="contact-panel">
+          <div class="contact-intro">
+            <h2>Informasi<br>Kontak</h2>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon whatsapp"><i class="fa-brands fa-whatsapp"></i></span>
+            <div>
+              <h3>WhatsApp</h3>
+              <p>Hubungi kami melalui WhatsApp.</p>
+              <a class="contact-btn" href="#" data-contact-link="whatsapp">Chat Sekarang</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon email"><i class="fa-regular fa-envelope"></i></span>
+            <div>
+              <h3>Email</h3>
+              <p>Kirim email untuk informasi lebih lanjut.</p>
+              <a class="contact-btn" href="#" data-contact-link="email">Kirim Email</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <span class="contact-icon address"><i class="fa-solid fa-location-dot"></i></span>
+            <div>
+              <h3>Alamat Kantor</h3>
+              <p>Kunjungi kantor kami atau lihat di Google Maps.</p>
+              <a class="contact-btn" href="#" data-contact-link="maps">Lihat Peta</a>
+            </div>
+          </div>
+         <div class="map-card">
+            <iframe
+            src="https://www.google.com/maps?q=HO+Baraka+Express&output=embed"
+            title="Lokasi Baraka Express"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen></iframe>
+        <a class="map-open" href="#" data-contact-link="maps" aria-label="Buka di Google Maps">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
+        </div>
+        </div>
+      </section>
     </main>
 
+    <footer class="site-footer">
+      <a class="footer-brand" href="#beranda"><img src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" alt="Baraka Express"></a>
+      <div class="copyright"><strong>© 2026 Digital Marketing</strong><span>Seluruh hak cipta dilindungi.</span></div>
+      <span class="crafted">Crafted by <strong>iamnotafra1d®</strong></span>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
