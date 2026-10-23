@@ -17,6 +17,7 @@
  *   DRIVE_FOLDER_ID   : ID folder foto audit (harus di Shared Drive)
  *   GALLERY_ADMIN_ID, GALLERY_ADMIN_PASSWORD : Secret login admin gallery
  *   GALLERY_KV        : binding KV untuk data gallery dan sesi login
+ *   GALLERY_BUCKET    : binding R2 bucket untuk file gambar gallery
  *   ALLOWED_ORIGINS   : opsional, daftar origin dipisah koma, mis. https://akun.github.io
  *                       Kosong = semua origin boleh.
  * SHEET_NAME tidak dipakai lagi (nama tab ditentukan di bawah).
@@ -365,9 +366,24 @@ export default {
         await env.GALLERY_KV.put('gallery-session:' + session, '1', { expirationTtl: 1800 });
         return json({ ok: true, session, expiresIn: 1800 }, 200, cors);
       }
-      if (request.method !== 'PUT') return fail('Method tidak diizinkan', 405, cors);
+      if (request.method !== 'PUT' && !(url.searchParams.get('action') === 'upload' && request.method === 'POST')) return fail('Method tidak diizinkan', 405, cors);
       const session = request.headers.get('X-Admin-Session') || '';
       if (!session || !(await env.GALLERY_KV.get('gallery-session:' + session))) return fail('Sesi login berakhir, silakan login kembali', 401, cors);
+      if (url.searchParams.get('action') === 'upload' && request.method === 'POST') {
+        if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
+        let upload; try { upload = await request.json(); } catch (err) { return fail('Data upload tidak valid', 400, cors); }
+        const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+        const extension = extensions[upload && upload.type];
+        if (!extension || typeof upload.data !== 'string' || upload.data.length > 5600000) return fail('Format tidak didukung atau gambar lebih dari 4 MB', 400, cors);
+        try {
+          const bytes = Uint8Array.from(atob(upload.data), (char) => char.charCodeAt(0));
+          if (!bytes.length || bytes.length > 4 * 1024 * 1024) return fail('Ukuran gambar maksimal 4 MB', 400, cors);
+          const key = 'gallery/' + crypto.randomUUID() + '.' + extension;
+          await env.GALLERY_BUCKET.put(key, bytes, { httpMetadata: { contentType: upload.type } });
+          return json({ ok: true, path: url.origin + '/?resource=image&key=' + encodeURIComponent(key) }, 200, cors);
+        } catch (err) { return fail('Gagal menyimpan gambar', 500, cors); }
+      }
+      if (request.method !== 'PUT') return fail('Method tidak diizinkan', 405, cors);
       let payload;
       try { payload = await request.json(); } catch (err) { return fail('JSON tidak valid', 400, cors); }
       if (!payload || !Array.isArray(payload.slides) || payload.slides.length > 50) return fail('Format slides tidak valid (maksimal 50)', 400, cors);
