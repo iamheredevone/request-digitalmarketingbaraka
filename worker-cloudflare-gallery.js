@@ -17,7 +17,6 @@
  *   DRIVE_FOLDER_ID   : ID folder foto audit (harus di Shared Drive)
  *   GALLERY_ADMIN_ID, GALLERY_ADMIN_PASSWORD : Secret login admin gallery
  *   GALLERY_KV        : binding KV untuk data gallery dan sesi login
- *   GALLERY_BUCKET    : binding R2 bucket untuk file gambar gallery
  *   ALLOWED_ORIGINS   : opsional, daftar origin dipisah koma, mis. https://akun.github.io
  *                       Kosong = semua origin boleh.
  * SHEET_NAME tidak dipakai lagi (nama tab ditentukan di bawah).
@@ -348,6 +347,23 @@ export default {
   async fetch(request, env, ctx) {
     const cors = corsHeaders(request, env);
     const url = new URL(request.url);
+    if (url.searchParams.get('resource') === 'drive-image') {
+      if (request.method !== 'GET') return fail('Method tidak diizinkan', 405, cors);
+      const fileId = url.searchParams.get('id') || '';
+      if (!/^[A-Za-z0-9_-]{10,}$/.test(fileId)) return fail('ID gambar tidak valid', 400, cors);
+      try {
+        const gallery = env.GALLERY_KV ? await env.GALLERY_KV.get('gallery', 'json') : DEFAULT_GALLERY;
+        const isListed = gallery && Array.isArray(gallery.slides) && gallery.slides.some((slide) => String(slide.path || '') === url.origin + '/?resource=drive-image&id=' + fileId);
+        if (!isListed) return fail('Gambar tidak ditemukan', 404, cors);
+        const accessToken = await getAccessToken(env);
+        const image = await fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(fileId) + '?alt=media&supportsAllDrives=true', { headers: { 'Authorization': 'Bearer ' + accessToken } });
+        if (!image.ok) return fail('Gambar tidak dapat dibaca dari Drive', image.status, cors);
+        const headers = new Headers(cors);
+        headers.set('Content-Type', image.headers.get('Content-Type') || 'application/octet-stream');
+        headers.set('Cache-Control', 'public, max-age=3600');
+        return new Response(image.body, { status: 200, headers });
+      } catch (err) { return fail('Gagal mengambil gambar dari Drive', 500, cors); }
+    }
     if (url.searchParams.get('resource') === 'gallery') {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
       if (request.method === 'GET') {
@@ -371,51 +387,78 @@ export default {
       if (!session || !(await env.GALLERY_KV.get('gallery-session:' + session))) return fail('Sesi login berakhir, silakan login kembali', 401, cors);
       const action = url.searchParams.get('action');
       if (action === 'upload-init' && request.method === 'POST') {
-        if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
+        if (!env.DRIVE_FOLDER_ID) return fail('DRIVE_FOLDER_ID belum dikonfigurasi', 503, cors);
         let input; try { input = await request.json(); } catch (err) { return fail('Data upload tidak valid', 400, cors); }
         const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
         const extension = extensions[input && input.type];
-        if (!extension) return fail('Format gambar harus JPG, PNG, atau WebP', 400, cors);
+        const maxSize = 500 * 1024 * 1024;
+        if (!extension || !Number.isSafeInteger(input.size) || input.size < 1 || input.size > maxSize) return fail('Format harus JPG, PNG, WebP dan ukuran maksimal 500 MB', 400, cors);
         try {
-          const key = 'gallery/' + crypto.randomUUID() + '.' + extension;
-          const upload = await env.GALLERY_BUCKET.createMultipartUpload(key, { httpMetadata: { contentType: input.type } });
-          await env.GALLERY_KV.put('gallery-upload:' + upload.uploadId, JSON.stringify({ key, session }), { expirationTtl: 3600 });
-          return json({ ok: true, uploadId: upload.uploadId, chunkSize: 8 * 1024 * 1024 }, 200, cors);
-        } catch (err) { return fail('Gagal memulai upload', 500, cors); }
+          const accessToken = await getAccessToken(env);
+          const metadata = { name: 'gallery_' + crypto.randomUUID() + '.' + extension, mimeType: input.type, parents: [env.DRIVE_FOLDER_ID] };
+          const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': input.type, 'X-Upload-Content-Length': String(input.size) },
+            body: JSON.stringify(metadata)
+          });
+          if (!response.ok) throw new Error('Drive upload init ' + response.status + ': ' + await response.text());
+          const sessionUri = response.headers.get('Location');
+          if (!sessionUri) throw new Error('Drive tidak mengembalikan session URI');
+          const uploadId = crypto.randomUUID();
+          await env.GALLERY_KV.put('gallery-upload:' + uploadId, JSON.stringify({ session, sessionUri, size: input.size, type: input.type, offset: 0, nextPart: 1 }), { expirationTtl: 3600 });
+          return json({ ok: true, uploadId, chunkSize: 8 * 1024 * 1024 }, 200, cors);
+        } catch (err) { console.error('Gallery Drive init gagal:', err && err.message); return fail('Gagal memulai upload ke Google Drive', 500, cors); }
       }
       if (action === 'upload-part' && request.method === 'POST') {
-        if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
         let input; try { input = await request.json(); } catch (err) { return fail('Data potongan tidak valid', 400, cors); }
-        if (!input || !input.uploadId || !Number.isInteger(input.partNumber) || input.partNumber < 1 || input.partNumber > 10000 || typeof input.data !== 'string' || input.data.length > 12000000) return fail('Potongan upload tidak valid', 400, cors);
+        if (!input || !input.uploadId || !Number.isInteger(input.partNumber) || typeof input.data !== 'string' || input.data.length > 12000000) return fail('Potongan upload tidak valid', 400, cors);
         const stateText = await env.GALLERY_KV.get('gallery-upload:' + input.uploadId);
         if (!stateText) return fail('Sesi upload tidak ditemukan atau kedaluwarsa', 404, cors);
         const state = JSON.parse(stateText);
         if (state.session !== session) return fail('Sesi upload tidak cocok', 403, cors);
+        if (state.fileId) return json({ ok: true, done: true, partNumber: input.partNumber, fileId: state.fileId }, 200, cors);
+        if (input.partNumber !== state.nextPart) return fail('Nomor potongan upload tidak berurutan', 409, cors);
         try {
           const bytes = Uint8Array.from(atob(input.data), (char) => char.charCodeAt(0));
-          if (!bytes.length || bytes.length > 8 * 1024 * 1024) return fail('Ukuran potongan tidak valid', 400, cors);
-          const multipart = env.GALLERY_BUCKET.resumeMultipartUpload(state.key, input.uploadId);
-          const part = await multipart.uploadPart(input.partNumber, bytes);
-          return json({ ok: true, partNumber: part.partNumber, etag: part.etag }, 200, cors);
-        } catch (err) { return fail('Gagal mengunggah potongan', 500, cors); }
+          const chunkSize = 8 * 1024 * 1024;
+          const startByte = state.offset;
+          const endByte = startByte + bytes.length;
+          if (!bytes.length || bytes.length > chunkSize || endByte > state.size || (endByte < state.size && bytes.length % (256 * 1024) !== 0)) return fail('Ukuran potongan tidak valid', 400, cors);
+          const accessToken = await getAccessToken(env);
+          const response = await fetch(state.sessionUri, {
+            method: 'PUT',
+            redirect: 'manual',
+            headers: { 'Authorization': 'Bearer ' + accessToken, 'Content-Length': String(bytes.length), 'Content-Range': 'bytes ' + startByte + '-' + (endByte - 1) + '/' + state.size },
+            body: bytes
+          });
+          if (response.status === 308) {
+            const receivedRange = response.headers.get('Range');
+            const receivedEnd = receivedRange ? Number(receivedRange.match(/-(\d+)$/)?.[1]) + 1 : endByte;
+            if (!Number.isSafeInteger(receivedEnd) || receivedEnd !== endByte) return fail('Drive menerima jumlah byte yang tidak sesuai; upload perlu dicoba ulang', 502, cors);
+            state.offset = endByte;
+            state.nextPart += 1;
+            await env.GALLERY_KV.put('gallery-upload:' + input.uploadId, JSON.stringify(state), { expirationTtl: 3600 });
+            return json({ ok: true, done: false, partNumber: input.partNumber }, 200, cors);
+          }
+          if (!response.ok) throw new Error('Drive upload chunk ' + response.status + ': ' + await response.text());
+          const file = await response.json();
+          if (!file.id || endByte !== state.size) throw new Error('Drive menyelesaikan upload pada offset yang salah');
+          state.offset = endByte;
+          state.fileId = file.id;
+          await env.GALLERY_KV.put('gallery-upload:' + input.uploadId, JSON.stringify(state), { expirationTtl: 3600 });
+          return json({ ok: true, done: true, partNumber: input.partNumber, fileId: file.id }, 200, cors);
+        } catch (err) { console.error('Gallery Drive chunk gagal:', err && err.message); return fail('Gagal mengunggah potongan ke Google Drive', 500, cors); }
       }
       if (action === 'upload-complete' && request.method === 'POST') {
-        if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
         let input; try { input = await request.json(); } catch (err) { return fail('Data penyelesaian tidak valid', 400, cors); }
         const stateText = input && input.uploadId ? await env.GALLERY_KV.get('gallery-upload:' + input.uploadId) : null;
         if (!stateText) return fail('Sesi upload tidak ditemukan atau kedaluwarsa', 404, cors);
         const state = JSON.parse(stateText);
         if (state.session !== session) return fail('Sesi upload tidak cocok', 403, cors);
-        if (!Array.isArray(input.parts) || input.parts.length < 1 || input.parts.length > 10000) return fail('Daftar potongan tidak valid', 400, cors);
-        const parts = input.parts.map((part) => ({ partNumber: Number(part.partNumber), etag: String(part.etag || '') })).sort((a, b) => a.partNumber - b.partNumber);
-        if (parts.some((part, index) => part.partNumber !== index + 1 || !part.etag)) return fail('Urutan potongan tidak valid', 400, cors);
-        try {
-          await env.GALLERY_BUCKET.resumeMultipartUpload(state.key, input.uploadId).complete(parts);
-          await env.GALLERY_KV.delete('gallery-upload:' + input.uploadId);
-          return json({ ok: true, path: url.origin + '/?resource=image&key=' + encodeURIComponent(state.key) }, 200, cors);
-        } catch (err) { return fail('Gagal menyelesaikan upload', 500, cors); }
-      }
-      if (request.method !== 'PUT') return fail('Method tidak diizinkan', 405, cors);
+        if (!state.fileId || state.offset !== state.size) return fail('Upload gambar belum lengkap', 409, cors);
+        await env.GALLERY_KV.delete('gallery-upload:' + input.uploadId);
+        return json({ ok: true, path: url.origin + '/?resource=drive-image&id=' + encodeURIComponent(state.fileId) }, 200, cors);
+      }      if (request.method !== 'PUT') return fail('Method tidak diizinkan', 405, cors);
       let payload;
       try { payload = await request.json(); } catch (err) { return fail('JSON tidak valid', 400, cors); }
       if (!payload || !Array.isArray(payload.slides) || payload.slides.length > 50) return fail('Format slides tidak valid (maksimal 50)', 400, cors);
