@@ -4,7 +4,8 @@ const CONFIG = {
   waText: "Halo Baraka Express, saya ingin bertanya tentang layanan.",
   email: "barakaexpress_id@gmail.com",
   mapsUrl: "https://share.google/Z3KPMU4mmRjNcqhy6",
-  galleryInterval: 4000 // jeda slide otomatis (ms)
+  galleryInterval: 4000, // jeda slide otomatis (ms)
+  galleryJsonUrl: "https://digitalmarketing.iamhere-devone.workers.dev/?resource=gallery"
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -57,73 +58,98 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  // ---------- Galeri slider ----------
+  // ---------- Galeri slider dari file JSON lokal ----------
   const track = document.getElementById("galleryTrack");
   const gallery = document.getElementById("gallery");
   const dotsWrap = document.getElementById("galleryDots");
 
   if (track && gallery && dotsWrap) {
-    const slides = track.children;
-    let index = 0;
-    let timer = null;
+    const fallbackSlides = [
+      { path: "assets/Cabang Pekanbaru Utara WEB.png", alt: "Cabang Pekanbaru Utara" },
+      { path: "assets/Cabang Bekasi Utara WEB.jpg", alt: "Cabang Bekasi Utara" },
+      { path: "assets/Agen Surabaya Manukan WEB.png", alt: "Agen Surabaya Manukan" },
+      { path: "assets/Cabang Curup WEB.jpg", alt: "Cabang Curup" },
+      { path: "assets/Cabang Mojokerto Timur WEB.png", alt: "Cabang Mojokerto Timur" }
+    ];
 
-    // Titik navigasi
-    for (let i = 0; i < slides.length; i++) {
-      const b = document.createElement("button");
-      b.setAttribute("aria-label", `Gambar ${i + 1}`);
-      b.addEventListener("click", () => { go(i); start(); });
-      dotsWrap.appendChild(b);
-    }
-    const dots = dotsWrap.children;
+    function renderSlides(items) {
+      track.replaceChildren();
+      dotsWrap.replaceChildren();
+      items.forEach((item, i) => {
+        const slide = document.createElement("div");
+        slide.className = "gallery-slide";
+        const img = document.createElement("img");
+        img.src = item.path;
+        img.alt = item.alt || `Galeri Baraka Express ${i + 1}`;
+        if (i > 0) img.loading = "lazy";
+        img.addEventListener("error", () => console.warn("Gambar galeri gagal dimuat:", item.path));
+        slide.appendChild(img);
+        track.appendChild(slide);
+      });
 
-    function go(i) {
-      index = (i + slides.length) % slides.length;
-      track.style.transform = `translateX(-${index * 100}%)`;
-      [...dots].forEach((d, n) => d.classList.toggle("active", n === index));
-    }
-    function stop() {
-      clearInterval(timer);
-      timer = null;
-    }
-    function start() {
-      stop();
-      if (slides.length > 1) {
-        timer = setInterval(() => go(index + 1), CONFIG.galleryInterval);
+      const slides = track.children;
+      if (!slides.length) return;
+      let index = 0;
+      let timer = null;
+
+      for (let i = 0; i < slides.length; i++) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("aria-label", `Gambar ${i + 1}`);
+        button.addEventListener("click", () => { go(i); start(); });
+        dotsWrap.appendChild(button);
       }
+      const dots = dotsWrap.children;
+      const prev = document.getElementById("galleryPrev");
+      const next = document.getElementById("galleryNext");
+      if (prev) prev.hidden = slides.length < 2;
+      if (next) next.hidden = slides.length < 2;
+      dotsWrap.hidden = slides.length < 2;
+
+      function go(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = `translateX(-${index * 100}%)`;
+        [...dots].forEach((d, n) => d.classList.toggle("active", n === index));
+      }
+      function stop() { clearInterval(timer); timer = null; }
+      function start() {
+        stop();
+        if (slides.length > 1) timer = setInterval(() => go(index + 1), CONFIG.galleryInterval);
+      }
+
+      if (prev) prev.addEventListener("click", () => { go(index - 1); start(); });
+      if (next) next.addEventListener("click", () => { go(index + 1); start(); });
+      if (window.matchMedia("(hover: hover)").matches) {
+        gallery.addEventListener("mouseenter", stop);
+        gallery.addEventListener("mouseleave", start);
+      }
+      document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+      let startX = null;
+      gallery.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
+      gallery.addEventListener("touchend", (e) => {
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) { go(index + (dx < 0 ? 1 : -1)); start(); }
+        startX = null;
+      });
+      go(0);
+      start();
     }
 
-    const prev = document.getElementById("galleryPrev");
-    const next = document.getElementById("galleryNext");
-    if (prev) prev.addEventListener("click", () => { go(index - 1); start(); });
-    if (next) next.addEventListener("click", () => { go(index + 1); start(); });
-
-    // Jeda saat kursor di atas galeri (hanya perangkat dengan mouse)
-    if (window.matchMedia("(hover: hover)").matches) {
-      gallery.addEventListener("mouseenter", stop);
-      gallery.addEventListener("mouseleave", start);
+    async function loadGallery() {
+      const response = await fetch(CONFIG.galleryJsonUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error(`JSON gallery gagal dimuat (${response.status})`);
+      const data = await response.json();
+      const slides = Array.isArray(data) ? data : data.slides;
+      if (!Array.isArray(slides) || !slides.length) throw new Error("JSON gallery tidak berisi gambar");
+      return slides.filter((item) => item && typeof item.path === "string" && item.path.trim());
     }
 
-    // Jeda saat tab tidak aktif, lanjut saat kembali
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) stop(); else start();
-    });
-
-    // Swipe di HP
-    let startX = null;
-    gallery.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
-    gallery.addEventListener("touchend", (e) => {
-      if (startX === null) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      if (Math.abs(dx) > 40) { go(index + (dx < 0 ? 1 : -1)); start(); }
-      startX = null;
-    });
-
-    // Info di Console jika ada gambar yang gagal dimuat
-    gallery.querySelectorAll("img").forEach((img) =>
-      img.addEventListener("error", () => console.warn("Gambar gagal dimuat:", img.getAttribute("src")))
-    );
-
-    go(0);
-    start();
+    loadGallery()
+      .catch((error) => {
+        console.warn("Menggunakan gambar default karena data spreadsheet gagal dimuat:", error);
+        return fallbackSlides;
+      })
+      .then(renderSlides);
   }
 });
