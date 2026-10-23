@@ -366,22 +366,54 @@ export default {
         await env.GALLERY_KV.put('gallery-session:' + session, '1', { expirationTtl: 1800 });
         return json({ ok: true, session, expiresIn: 1800 }, 200, cors);
       }
-      if (request.method !== 'PUT' && !(url.searchParams.get('action') === 'upload' && request.method === 'POST')) return fail('Method tidak diizinkan', 405, cors);
+      if (request.method !== 'PUT' && !(['upload-init', 'upload-part', 'upload-complete'].includes(url.searchParams.get('action')) && request.method === 'POST')) return fail('Method tidak diizinkan', 405, cors);
       const session = request.headers.get('X-Admin-Session') || '';
       if (!session || !(await env.GALLERY_KV.get('gallery-session:' + session))) return fail('Sesi login berakhir, silakan login kembali', 401, cors);
-      if (url.searchParams.get('action') === 'upload' && request.method === 'POST') {
+      const action = url.searchParams.get('action');
+      if (action === 'upload-init' && request.method === 'POST') {
         if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
-        let upload; try { upload = await request.json(); } catch (err) { return fail('Data upload tidak valid', 400, cors); }
+        let input; try { input = await request.json(); } catch (err) { return fail('Data upload tidak valid', 400, cors); }
         const extensions = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
-        const extension = extensions[upload && upload.type];
-        if (!extension || typeof upload.data !== 'string' || upload.data.length > 5600000) return fail('Format tidak didukung atau gambar lebih dari 4 MB', 400, cors);
+        const extension = extensions[input && input.type];
+        if (!extension) return fail('Format gambar harus JPG, PNG, atau WebP', 400, cors);
         try {
-          const bytes = Uint8Array.from(atob(upload.data), (char) => char.charCodeAt(0));
-          if (!bytes.length || bytes.length > 4 * 1024 * 1024) return fail('Ukuran gambar maksimal 4 MB', 400, cors);
           const key = 'gallery/' + crypto.randomUUID() + '.' + extension;
-          await env.GALLERY_BUCKET.put(key, bytes, { httpMetadata: { contentType: upload.type } });
-          return json({ ok: true, path: url.origin + '/?resource=image&key=' + encodeURIComponent(key) }, 200, cors);
-        } catch (err) { return fail('Gagal menyimpan gambar', 500, cors); }
+          const upload = await env.GALLERY_BUCKET.createMultipartUpload(key, { httpMetadata: { contentType: input.type } });
+          await env.GALLERY_KV.put('gallery-upload:' + upload.uploadId, JSON.stringify({ key, session }), { expirationTtl: 3600 });
+          return json({ ok: true, uploadId: upload.uploadId, chunkSize: 8 * 1024 * 1024 }, 200, cors);
+        } catch (err) { return fail('Gagal memulai upload', 500, cors); }
+      }
+      if (action === 'upload-part' && request.method === 'POST') {
+        if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
+        let input; try { input = await request.json(); } catch (err) { return fail('Data potongan tidak valid', 400, cors); }
+        if (!input || !input.uploadId || !Number.isInteger(input.partNumber) || input.partNumber < 1 || input.partNumber > 10000 || typeof input.data !== 'string' || input.data.length > 12000000) return fail('Potongan upload tidak valid', 400, cors);
+        const stateText = await env.GALLERY_KV.get('gallery-upload:' + input.uploadId);
+        if (!stateText) return fail('Sesi upload tidak ditemukan atau kedaluwarsa', 404, cors);
+        const state = JSON.parse(stateText);
+        if (state.session !== session) return fail('Sesi upload tidak cocok', 403, cors);
+        try {
+          const bytes = Uint8Array.from(atob(input.data), (char) => char.charCodeAt(0));
+          if (!bytes.length || bytes.length > 8 * 1024 * 1024) return fail('Ukuran potongan tidak valid', 400, cors);
+          const multipart = env.GALLERY_BUCKET.resumeMultipartUpload(state.key, input.uploadId);
+          const part = await multipart.uploadPart(input.partNumber, bytes);
+          return json({ ok: true, partNumber: part.partNumber, etag: part.etag }, 200, cors);
+        } catch (err) { return fail('Gagal mengunggah potongan', 500, cors); }
+      }
+      if (action === 'upload-complete' && request.method === 'POST') {
+        if (!env.GALLERY_BUCKET) return fail('Binding GALLERY_BUCKET belum dikonfigurasi', 503, cors);
+        let input; try { input = await request.json(); } catch (err) { return fail('Data penyelesaian tidak valid', 400, cors); }
+        const stateText = input && input.uploadId ? await env.GALLERY_KV.get('gallery-upload:' + input.uploadId) : null;
+        if (!stateText) return fail('Sesi upload tidak ditemukan atau kedaluwarsa', 404, cors);
+        const state = JSON.parse(stateText);
+        if (state.session !== session) return fail('Sesi upload tidak cocok', 403, cors);
+        if (!Array.isArray(input.parts) || input.parts.length < 1 || input.parts.length > 10000) return fail('Daftar potongan tidak valid', 400, cors);
+        const parts = input.parts.map((part) => ({ partNumber: Number(part.partNumber), etag: String(part.etag || '') })).sort((a, b) => a.partNumber - b.partNumber);
+        if (parts.some((part, index) => part.partNumber !== index + 1 || !part.etag)) return fail('Urutan potongan tidak valid', 400, cors);
+        try {
+          await env.GALLERY_BUCKET.resumeMultipartUpload(state.key, input.uploadId).complete(parts);
+          await env.GALLERY_KV.delete('gallery-upload:' + input.uploadId);
+          return json({ ok: true, path: url.origin + '/?resource=image&key=' + encodeURIComponent(state.key) }, 200, cors);
+        } catch (err) { return fail('Gagal menyelesaikan upload', 500, cors); }
       }
       if (request.method !== 'PUT') return fail('Method tidak diizinkan', 405, cors);
       let payload;
