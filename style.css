@@ -75,13 +75,13 @@ a { color: inherit; text-decoration: none; }
 .header-cta:hover { transform: translateY(-1px); }
 .header-admin {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 16px; border: 1px solid rgba(255,255,255,.7); border-radius: 999px;
-  color: #fff; font-size: 12px; font-weight: 800;
+  background: #fff; color: var(--teal);
+  font-size: 13px; font-weight: 700;
+  padding: 10px 22px; border: 0; border-radius: 999px;
   transition: background .2s, color .2s, transform .2s;
 }
-.site-header.scrolled .header-admin { color: var(--teal); border-color: var(--teal); background: #fff; }
-.header-admin:hover { transform: translateY(-1px); background: rgba(255,255,255,.16); }
-.site-header.scrolled .header-admin:hover { background: #eaf4f8; }
+.site-header.scrolled .header-admin { background: var(--teal); color: #fff; }
+.header-admin:hover { transform: translateY(-1px); }
 .header-cta i { font-size: 16px; }
 .nav-toggle { display: none; background: none; border: 0; font-size: 22px; color: #fff; cursor: pointer; }
 .site-header.scrolled .nav-toggle { color: var(--teal); }
