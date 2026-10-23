@@ -201,11 +201,44 @@ async function sendDiscord(env, embed) {
   }
 }
 
+const DEFAULT_GALLERY = { slides: [
+  { path: 'assets/Cabang Pekanbaru Utara WEB.png', alt: 'Cabang Pekanbaru Utara' },
+  { path: 'assets/Cabang Bekasi Utara WEB.jpg', alt: 'Cabang Bekasi Utara' },
+  { path: 'assets/Agen Surabaya Manukan WEB.png', alt: 'Agen Surabaya Manukan' },
+  { path: 'assets/Cabang Curup WEB.jpg', alt: 'Cabang Curup' },
+  { path: 'assets/Cabang Mojokerto Timur WEB.png', alt: 'Cabang Mojokerto Timur' }
+] };
+
 /* ===================== ENTRY POINT ===================== */
 export default {
   async fetch(request, env, ctx) {
     const cors = corsHeaders(request, env);
-
+    const url = new URL(request.url);
+    if (url.searchParams.get('resource') === 'gallery') {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      if (request.method === 'GET') {
+        try { const stored = env.GALLERY_KV ? await env.GALLERY_KV.get('gallery', 'json') : null; return json(stored || DEFAULT_GALLERY, 200, cors); }
+        catch (err) { return fail('Gagal membaca gallery', 500, cors); }
+      }
+      if (!allowedList(env).length || !originAllowed(request.headers.get('Origin'), env)) return fail('Origin admin belum diizinkan', 403, cors);
+      if (!env.GALLERY_KV) return fail('Binding GALLERY_KV belum dikonfigurasi', 503, cors);
+      if (url.searchParams.get('action') === 'login' && request.method === 'POST') {
+        let credentials; try { credentials = await request.json(); } catch (err) { return fail('Data login tidak valid', 400, cors); }
+        if (!env.GALLERY_ADMIN_ID || !env.GALLERY_ADMIN_PASSWORD || credentials.id !== env.GALLERY_ADMIN_ID || credentials.password !== env.GALLERY_ADMIN_PASSWORD) return fail('ID atau password salah', 401, cors);
+        const session = crypto.randomUUID();
+        await env.GALLERY_KV.put('gallery-session:' + session, '1', { expirationTtl: 1800 });
+        return json({ ok: true, session, expiresIn: 1800 }, 200, cors);
+      }
+      if (request.method !== 'PUT') return fail('Method tidak diizinkan', 405, cors);
+      const session = request.headers.get('X-Admin-Session') || '';
+      if (!session || !(await env.GALLERY_KV.get('gallery-session:' + session))) return fail('Sesi login berakhir, silakan login kembali', 401, cors);
+      let payload; try { payload = await request.json(); } catch (err) { return fail('JSON tidak valid', 400, cors); }
+      if (!payload || !Array.isArray(payload.slides) || payload.slides.length > 50) return fail('Format slides tidak valid (maksimal 50)', 400, cors);
+      const slides = payload.slides.map((item) => ({ path: str(item && item.path, 500), alt: str(item && item.alt, 300) }));
+      if (slides.some((item) => !item.path || /^(javascript:|data:)/i.test(item.path))) return fail('Path gambar tidak valid', 400, cors);
+      try { await env.GALLERY_KV.put('gallery', JSON.stringify({ slides })); return json({ ok: true, slides: slides.length }, 200, cors); }
+      catch (err) { return fail('Gagal menyimpan gallery', 500, cors); }
+    }
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: cors });
     }
@@ -425,8 +458,8 @@ function corsHeaders(request, env) {
   const origin = request.headers.get('Origin');
   const list = allowedList(env);
   const h = {
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
