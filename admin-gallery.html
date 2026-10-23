@@ -1,189 +1,87 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Galeri | Baraka Express</title>
-<style>
-:root{
-  --teal-900:#001f3d;--teal-700:#003462;--teal-600:#0a4c8a;--teal-400:#3b8fd9;--teal-200:#b5d6f5;
-  --ink:#0f2a44;--muted:#5a6f87;--line:#c9d6e6;--danger:#a43e48;--ok:#1d8a5b;
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink)
-}
-*{box-sizing:border-box}
-html,body{min-height:100%}
-body{
-  margin:0;padding:24px;min-height:100vh;display:grid;place-items:center;overflow-x:hidden;
-  background:linear-gradient(135deg,#001a33,#003462 45%,#2a7fd0);
-  background-size:200% 200%;animation:bgShift 16s ease infinite;position:relative
-}
-@keyframes bgShift{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
-
-/* Dekorasi latar */
-.bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.45;animation:float 14s ease-in-out infinite}
-.blob.b1{width:380px;height:380px;background:#6fb4f0;top:-120px;left:-100px}
-.blob.b2{width:320px;height:320px;background:#0a5ca8;bottom:-120px;right:-80px;animation-delay:-5s}
-.blob.b3{width:220px;height:220px;background:#cfe6ff;top:55%;left:55%;opacity:.25;animation-delay:-9s}
-@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.1)}66%{transform:translate(-30px,40px) scale(.95)}}
-.bubbles span{position:absolute;bottom:-60px;width:14px;height:14px;border-radius:50%;background:#ffffff33;animation:rise linear infinite}
-.bubbles span:nth-child(1){left:10%;animation-duration:12s}
-.bubbles span:nth-child(2){left:28%;width:22px;height:22px;animation-duration:17s;animation-delay:-4s}
-.bubbles span:nth-child(3){left:46%;animation-duration:14s;animation-delay:-8s}
-.bubbles span:nth-child(4){left:66%;width:18px;height:18px;animation-duration:19s;animation-delay:-2s}
-.bubbles span:nth-child(5){left:84%;animation-duration:13s;animation-delay:-6s}
-@keyframes rise{to{transform:translateY(-120vh) translateX(30px);opacity:0}}
-
-/* Kartu */
-.panel{
-  position:relative;z-index:1;width:100%;max-width:430px;padding:36px 32px 30px;border-radius:24px;
-  background:#ffffffeb;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border:1px solid #ffffffaa;box-shadow:0 30px 70px #00132855,0 2px 0 #fff inset;
-  animation:cardIn .8s cubic-bezier(.2,.9,.3,1.2) both;transition:max-width .5s ease
-}
-.panel.wide{max-width:900px}
-@keyframes cardIn{from{opacity:0;transform:translateY(40px) scale(.94)}to{opacity:1;transform:none}}
-.panel.shake{animation:shake .5s}
-@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
-
-.brand{display:grid;place-items:center;margin-bottom:6px}
-.logo{
-  width:68px;height:68px;border-radius:20px;display:grid;place-items:center;color:#fff;
-  background:linear-gradient(135deg,var(--teal-400),var(--teal-700));box-shadow:0 12px 26px #0a4c8a55;
-  animation:pulse 3s ease-in-out infinite
-}
-.logo svg{width:34px;height:34px}
-@keyframes pulse{0%,100%{box-shadow:0 12px 26px #0a4c8a55,0 0 0 0 #3b8fd966}50%{box-shadow:0 12px 26px #0a4c8a55,0 0 0 14px #3b8fd900}}
-h1{margin:14px 0 6px;text-align:center;font-size:clamp(22px,5vw,28px);letter-spacing:-.02em;
-  background:linear-gradient(90deg,var(--teal-900),var(--teal-600));-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{margin:0 0 22px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5}
-
-/* Form login */
-section[hidden]{display:none!important}
-#login,#editor{animation:fade .5s ease both}
-@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.field{position:relative;display:block;margin:0 0 18px}
-.field input{
-  width:100%;padding:22px 46px 8px 46px;border:1.5px solid var(--line);border-radius:14px;background:#f5f8fc;
-  font-size:15px;color:var(--ink);outline:none;transition:border-color .25s,box-shadow .25s,background .25s
-}
-.field label{
-  position:absolute;left:46px;top:50%;transform:translateY(-50%);color:#7a8ea6;font-size:15px;pointer-events:none;
-  transition:all .2s ease;transform-origin:left
-}
-.field input:focus+label,.field input:not(:placeholder-shown)+label{top:14px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--teal-600)}
-.field input:focus{border-color:var(--teal-400);background:#fff;box-shadow:0 0 0 4px #3b8fd926}
-.field .ico{position:absolute;left:15px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:#7a8ea6;transition:color .25s}
-.field:focus-within .ico{color:var(--teal-600)}
-.eye{
-  position:absolute;right:8px;top:50%;transform:translateY(-50%);width:36px;height:36px;padding:0;border-radius:10px;
-  background:transparent;color:#7a8ea6;display:grid;place-items:center;box-shadow:none
-}
-.eye:hover{background:#0a4c8a14;color:var(--teal-600);transform:translateY(-50%)}
-.eye svg{width:20px;height:20px}
-.eye .off{display:none}.eye.show .on{display:none}.eye.show .off{display:block}
-
-button{
-  position:relative;overflow:hidden;border:0;border-radius:12px;padding:12px 16px;
-  background:linear-gradient(135deg,var(--teal-600),var(--teal-700));color:#fff;font-weight:700;font-size:14px;cursor:pointer;
-  transition:transform .2s,box-shadow .2s,filter .2s
-}
-button:hover{transform:translateY(-2px);box-shadow:0 10px 22px #0a4c8a44;filter:brightness(1.08)}
-button:active{transform:translateY(0) scale(.98)}
-button:disabled{opacity:.65;cursor:not-allowed;transform:none}
-button:focus-visible,input:focus-visible{outline:3px solid #3b8fd988;outline-offset:2px}
-#loginButton{width:100%;padding:15px;font-size:16px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px}
-#loginButton::after{
-  content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;
-  background:linear-gradient(100deg,transparent,#ffffff55,transparent);transform:skewX(-20deg);animation:shine 3.5s ease-in-out infinite
-}
-@keyframes shine{0%,60%{left:-120%}100%{left:160%}}
-.spinner{display:none;width:18px;height:18px;border:3px solid #ffffff55;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-#loginButton.loading .spinner{display:block}
-#loginButton.loading .label-text{opacity:.85}
-@keyframes spin{to{transform:rotate(360deg)}}
-.secure{display:flex;align-items:center;justify-content:center;gap:6px;margin:18px 0 0;font-size:12px;color:var(--muted)}
-.secure svg{width:14px;height:14px}
-
-/* Status */
-.status{min-height:24px;margin-top:14px;font-size:14px;text-align:center;color:var(--muted);transition:color .3s}
-.status.ok{color:var(--ok)}.status.err{color:var(--danger)}
-.status:not(:empty){animation:fade .35s ease both}
-
-/* Editor */
-.row{display:grid;grid-template-columns:1.2fr 1fr 1.2fr auto;gap:10px;margin:12px 0;align-items:center;
-  padding:12px;border-radius:14px;background:#f1f6fb;border:1px solid #dde8f3;animation:fade .4s ease both;transition:box-shadow .25s,transform .25s}
-.row:hover{box-shadow:0 8px 20px #0a4c8a18;transform:translateY(-2px)}
-.row input{width:100%;padding:11px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
-.row input:focus{border-color:var(--teal-400);box-shadow:0 0 0 3px #3b8fd926}
-.row input[type=file]{font-size:12px;padding:8px}
-.row>div{display:grid;gap:8px}
-button.remove{background:linear-gradient(135deg,#c24d58,var(--danger))}
-button.upload{white-space:nowrap}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
-.actions #logout{background:#e3ebf5;color:var(--teal-900)}
-.hint{font-size:13px;color:var(--muted)}
-
-@media(max-width:700px){
-  body{padding:14px}
-  .panel{padding:28px 20px 24px;border-radius:20px}
-  .row{grid-template-columns:1fr}
-  .row button{justify-self:start}
-  .actions button{flex:1 1 140px}
-}
-@media(max-width:380px){.logo{width:58px;height:58px}.panel{padding:24px 16px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#003462">
+  <meta name="description" content="Kelola gambar carousel Baraka Express.">
+  <title>Admin Galeri | Baraka Express</title>
+  <link rel="stylesheet" href="admin-gallery.css">
 </head>
 <body>
-<div class="bg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="bubbles"><span></span><span></span><span></span><span></span><span></span></div></div>
-
-<main class="panel" id="panel">
-  <div class="brand"><div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8 9"/></svg></div></div>
-  <h1 id="title">Kelola Gallery</h1>
-  <p class="sub" id="sub">Login untuk mengatur slide dan mengunggah gambar langsung dari komputer.</p>
-
-  <section id="login">
-    <div class="field">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-      <input id="adminId" placeholder=" " autocomplete="username"><label for="adminId">ID admin</label>
+  <div class="bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="bubbles">
+      <span></span><span></span><span></span><span></span><span></span>
     </div>
-    <div class="field">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-      <input id="adminPassword" type="password" placeholder=" " autocomplete="current-password"><label for="adminPassword">Password</label>
-      <button class="eye" id="togglePw" type="button" aria-label="Tampilkan password">
-        <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-        <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+  </div>
+
+  <main class="panel" id="panel">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="3"></rect>
+          <circle cx="9" cy="10" r="1.8"></circle>
+          <path d="m21 16-5-5-8 9"></path>
+        </svg>
+      </div>
+    </div>
+    <h1 id="title">Kelola Gallery</h1>
+    <p class="sub" id="sub">Login untuk mengatur slide dan mengunggah gambar langsung dari komputer.</p>
+
+    <section id="login" aria-label="Login admin galeri">
+      <div class="field">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path>
+        </svg>
+        <input id="adminId" placeholder=" " autocomplete="username" aria-label="ID admin">
+        <label for="adminId">ID admin</label>
+      </div>
+      <div class="field">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="11" width="16" height="10" rx="2.5"></rect>
+          <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
+        </svg>
+        <input id="adminPassword" type="password" placeholder=" " autocomplete="current-password" aria-label="Password">
+        <label for="adminPassword">Password</label>
+        <button class="eye" id="togglePw" type="button" aria-label="Tampilkan password">
+          <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.5 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7c1.7 0 3.2-.4 4.5-1M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+          </svg>
+        </button>
+      </div>
+      <button id="loginButton" type="button">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="label-text">Login</span>
       </button>
-    </div>
-    <button id="loginButton" type="button"><span class="spinner"></span><span class="label-text">Login</span></button>
-    <p class="secure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3Z"/></svg>Area khusus admin &middot; sesi berlaku 30 menit</p>
-  </section>
+      <p class="secure">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3Z"></path>
+        </svg>
+        Area khusus admin &middot; sesi berlaku 30 menit
+      </p>
+    </section>
 
-  <section id="editor" hidden>
-    <div id="rows"></div>
-    <div class="actions"><button id="add" type="button">Tambah gambar</button><button id="save" type="button">Simpan perubahan</button><button id="logout" type="button">Keluar</button></div>
-    <p class="hint">Format upload: JPG, PNG, WebP, maksimal 500 MB per gambar. Sesi login berlaku 30 menit.</p>
-  </section>
+    <section id="editor" aria-label="Editor galeri" hidden>
+      <div id="rows"></div>
+      <div class="actions">
+        <button id="add" type="button">Tambah gambar</button>
+        <button id="save" type="button">Simpan perubahan</button>
+        <button id="logout" type="button">Keluar</button>
+      </div>
+      <p class="hint">Format upload: JPG, PNG, WebP, maksimal 500 MB per gambar. Sesi login berlaku 30 menit.</p>
+    </section>
 
-  <div class="status" id="status" role="status" aria-live="polite"></div>
-</main>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </main>
 
-<script>
-const API="https://digitalmarketing.iamhere-devone.workers.dev/?resource=gallery",rows=document.getElementById("rows"),status=document.getElementById("status");let slides=[],session="";
-function draw(){rows.replaceChildren();slides.forEach((item,i)=>{const row=document.createElement("div");row.className="row";const path=document.createElement("input");path.placeholder="Path gambar atau URL hasil upload";path.value=item.path||"";path.setAttribute("aria-label",`Path gambar ${i+1}`);path.oninput=()=>item.path=path.value;const alt=document.createElement("input");alt.placeholder="Teks alt";alt.value=item.alt||"";alt.setAttribute("aria-label",`Teks alt ${i+1}`);alt.oninput=()=>item.alt=alt.value;const picker=document.createElement("input");picker.type="file";picker.accept="image/jpeg,image/png,image/webp";picker.setAttribute("aria-label",`Pilih file gambar ${i+1}`);const upload=document.createElement("button");upload.className="upload";upload.type="button";upload.textContent="Upload";upload.onclick=()=>uploadImage(picker.files[0],item,upload);const remove=document.createElement("button");remove.className="remove";remove.type="button";remove.textContent="Hapus";remove.onclick=()=>{slides.splice(i,1);draw()};const fileGroup=document.createElement("div");fileGroup.append(picker,upload);row.append(path,alt,fileGroup,remove);rows.append(row)})}
-async function uploadImage(file,item,button){if(!file)return status.textContent="Pilih file gambar terlebih dahulu.";if(file.size>500*1024*1024)return status.textContent="Ukuran maksimal 500 MB.";button.disabled=true;status.textContent="Memulai upload...";let uploadId="";try{const initResponse=await fetch(API+"&action=upload-init",{method:"POST",headers:{"Content-Type":"application/json","X-Admin-Session":session},body:JSON.stringify({type:file.type,size:file.size})}),initData=await initResponse.json();if(!initResponse.ok)throw Error(initData.error||`HTTP ${initResponse.status}`);uploadId=initData.uploadId;const chunkSize=initData.chunkSize;let partNumber=1;for(let start=0;start<file.size;start+=chunkSize,partNumber++){const bytes=new Uint8Array(await file.slice(start,Math.min(start+chunkSize,file.size)).arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));const response=await fetch(API+"&action=upload-part",{method:"POST",headers:{"Content-Type":"application/json","X-Admin-Session":session},body:JSON.stringify({uploadId,partNumber,data:btoa(binary)})}),data=await response.json();if(!response.ok)throw Error(data.error||`HTTP ${response.status}`);status.textContent=`Upload ${Math.min(100,Math.round((start+bytes.length)/file.size*100))}%`};const completeResponse=await fetch(API+"&action=upload-complete",{method:"POST",headers:{"Content-Type":"application/json","X-Admin-Session":session},body:JSON.stringify({uploadId})}),completeData=await completeResponse.json();if(!completeResponse.ok)throw Error(completeData.error||`HTTP ${completeResponse.status}`);item.path=completeData.path;draw();status.textContent="Upload berhasil. Klik Simpan perubahan untuk menambahkannya ke carousel."}catch(error){status.textContent="Upload gagal: "+error.message}finally{button.disabled=false}}async function load(){const response=await fetch(API);if(!response.ok)throw Error(`HTTP ${response.status}`);slides=(await response.json()).slides||[];draw()}
-
-/* UI helpers */
-const panel=document.getElementById("panel"),loginBtn=document.getElementById("loginButton"),pwInput=document.getElementById("adminPassword"),idInput=document.getElementById("adminId");
-function shake(){panel.classList.remove("shake");void panel.offsetWidth;panel.classList.add("shake")}
-function setView(editing){document.getElementById("login").hidden=editing;document.getElementById("editor").hidden=!editing;panel.classList.toggle("wide",editing);
-  document.getElementById("title").textContent=editing?"Kelola Gallery":"Kelola Gallery";
-  document.getElementById("sub").textContent=editing?"Atur urutan slide, teks alt, dan unggah gambar baru.":"Login untuk mengatur slide dan mengunggah gambar langsung dari komputer."}
-new MutationObserver(()=>{const t=status.textContent;status.className="status"+(/berhasil|tersimpan|keluar/i.test(t)?" ok":/gagal|harus|maksimal|pilih|http|error|salah|tidak/i.test(t)?" err":"")}).observe(status,{childList:true,characterData:true,subtree:true});
-document.getElementById("togglePw").onclick=e=>{const b=e.currentTarget,show=pwInput.type==="password";pwInput.type=show?"text":"password";b.classList.toggle("show",show);b.setAttribute("aria-label",show?"Sembunyikan password":"Tampilkan password")};
-[idInput,pwInput].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")loginBtn.click()}));
-
-document.getElementById("loginButton").onclick=async()=>{if(loginBtn.disabled)return;loginBtn.disabled=true;loginBtn.classList.add("loading");status.textContent="Memeriksa login…";try{const response=await fetch(API+"&action=login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:idInput.value,password:pwInput.value})}),data=await response.json();if(!response.ok)throw Error(data.error||"Login gagal");session=data.session;await load();pwInput.value="";setView(true);status.textContent="Login berhasil."}catch(error){status.textContent=error.message;shake()}finally{loginBtn.disabled=false;loginBtn.classList.remove("loading")}};
-document.getElementById("add").onclick=()=>{slides.push({path:"",alt:""});draw()};document.getElementById("save").onclick=async()=>{if(slides.some(item=>!item.path.trim()))return status.textContent="Semua path harus diisi.";status.textContent="Menyimpan daftar gallery…";try{const response=await fetch(API,{method:"PUT",headers:{"Content-Type":"application/json","X-Admin-Session":session},body:JSON.stringify({slides})}),data=await response.json();if(!response.ok)throw Error(data.error||`HTTP ${response.status}`);status.textContent=`Tersimpan: ${data.slides} gambar.`}catch(error){session="";setView(false);status.textContent=error.message;shake()}};
-document.getElementById("logout").onclick=()=>{session="";slides=[];setView(false);status.textContent="Anda sudah keluar."};
-</script></body></html>
+  <script src="admin-gallery.js"></script>
+</body>
+</html>

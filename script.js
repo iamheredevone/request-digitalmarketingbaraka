@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  // ---------- Galeri slider dari file JSON lokal ----------
+  // ---------- Carousel galeri dengan data dari Worker dan fallback lokal ----------
   const track = document.getElementById("galleryTrack");
   const gallery = document.getElementById("gallery");
   const dotsWrap = document.getElementById("galleryDots");
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadGallery()
       .catch((error) => {
-        console.warn("Menggunakan gambar default karena data spreadsheet gagal dimuat:", error);
+        console.warn("Menggunakan gambar default karena data galeri dari Worker gagal dimuat:", error);
         return fallbackSlides;
       })
       .then(renderSlides);
