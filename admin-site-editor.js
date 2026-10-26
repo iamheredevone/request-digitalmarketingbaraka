@@ -5,7 +5,20 @@
   let session = "", data = null, selected = { type: "section", section: "hero" }, history = [], hi = -1, busy = false;
   const preview = $("#previewFrame"), layers = $("#layers"), props = $("#properties"), canvasStage = document.querySelector(".canvas-stage");
   const labels = { hero: "Hero", services: "Layanan", custom: "Konten Tambahan", digital: "Materi Digital", gallery: "Galeri", contact: "Kontak" };
-  const icons = [["file","File"],["palette","Palet"],["location","Lokasi"],["clipboard","Checklist"]];
+  const icons = [
+  ["file","File"],["palette","Palet"],["location","Lokasi"],["clipboard","Checklist"],
+  ["truck","Truk / Pengiriman"],["box","Paket"],["boxes-stacked","Tumpukan Paket"],
+  ["warehouse","Gudang"],["store","Toko"],["building","Gedung"],["map","Peta"],
+  ["phone","Telepon"],["envelope","Email"],["comments","Chat"],["bullhorn","Promosi"],
+  ["image","Gambar"],["camera","Kamera"],["video","Video"],["bag-shopping","Belanja"],
+  ["cart-shopping","Keranjang"],["tag","Label"],["gift","Hadiah"],["star","Bintang"],
+  ["heart","Hati"],["calendar-days","Kalender"],["clock","Jam"],["users","Tim"],
+  ["user-tie","Profesional"],["handshake","Kemitraan"],["chart-line","Grafik"],
+  ["money-bill","Uang"],["credit-card","Pembayaran"],["gear","Pengaturan"],
+  ["shield-halved","Keamanan"],["circle-check","Centang"],["circle-info","Info"],
+  ["lightbulb","Ide"],["rocket","Roket"],["globe","Web"],["link","Tautan"],
+  ["download","Unduh"],["print","Cetak"],["pen","Tulis"],["book","Buku"]
+];
   const paletteColors = ["#063e67", "#0b6c83", "#16a085", "#f27d12", "#f04353", "#8754e8", "#e8f4f7", "#ffffff"];
   async function req(url, opt = {}) { const r = await fetch(url,opt), j = await r.json().catch(()=>({})); if(!r.ok) throw Error(j.error||j.message||`HTTP ${r.status}`); return j; }
   const headers = () => ({"Content-Type":"application/json","X-Admin-Session":session});
@@ -19,7 +32,7 @@
     const surfaceDefaults={background:"",backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:""};
     model.services={...surfaceDefaults,...defaults.services,...model.services};model.digital={...surfaceDefaults,...defaults.digital,...model.digital};
     model.custom={title:"Konten Tambahan",columns:3,gap:20,items:[],...surfaceDefaults,...defaults.custom,...model.custom,items:Array.isArray(model.custom?.items)?model.custom.items:[]};model.contact={...defaults.contact,...model.contact};
-    const styleDefaults={backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",radius:"",borderColor:"",borderWidth:0,textAlign:"left"};
+    const styleDefaults={backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",radius:"",borderColor:"",borderWidth:0,textAlign:"left",iconColor:""};
     for(const section of ["services","digital","custom"])model[section].items=(model[section].items||[]).map(item=>({...styleDefaults,...item}));
     model.hero={backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",...model.hero};
     return model;
@@ -54,7 +67,9 @@
     props.replaceChildren();const s=selected.section;
     if(selected.type==="item"){
       const item=list(s).find(x=>x.id===selected.id);if(!item){selected={type:"section",section:"hero"};drawProps();return}const kind=s==="services"?"Kartu layanan":s==="digital"?"Materi digital":item.type==="text"?"Elemen teks":"Card custom";let g=group(kind);
-      if(s==="services"){field(g,"Judul",item.title,v=>item.title=v);field(g,"Deskripsi",item.description,v=>item.description=v,{area:true});field(g,"Ikon",item.icon,v=>item.icon=v,{options:icons});field(g,"Warna ikon",item.color,v=>item.color=v,{options:[["blue","Biru"],["purple","Ungu"],["green","Hijau"],["orange","Oranye"]]});field(g,"Link tujuan",item.href,v=>item.href=v)}
+      if(s==="services"){field(g,"Judul",item.title,v=>item.title=v);field(g,"Deskripsi",item.description,v=>item.description=v,{area:true});field(g,"Ikon",item.icon,v=>item.icon=v,{options:icons});
+color(g,"Warna ikon (custom)",item.iconColor,v=>item.iconColor=v);
+addPalette(g,"Palet cepat · ikon",v=>item.iconColor=v);field(g,"Link tujuan",item.href,v=>item.href=v)}
       else if(s==="digital"){field(g,"Judul",item.title,v=>item.title=v);field(g,"Path / URL gambar",item.image,v=>item.image=v);field(g,"Teks alt",item.alt,v=>item.alt=v);field(g,"Link tujuan",item.href,v=>item.href=v)}
       else{field(g,"Jenis elemen",item.type,v=>{item.type=v;drawProps()},{options:[["text","Teks"],["card","Card"]]});field(g,"Judul",item.title,v=>item.title=v);field(g,item.type==="text"?"Isi teks":"Deskripsi",item.text,v=>item.text=v,{area:true});if(item.type==="card"){field(g,"Gambar (opsional)",item.image,v=>item.image=v);field(g,"Teks alt",item.alt,v=>item.alt=v);field(g,"Link tujuan (opsional)",item.href,v=>item.href=v)}}
       field(g,"Lebar kolom",item.width,v=>item.width=v,{type:"range",min:1,max:5});designControls(item,"Warna & efek");return;

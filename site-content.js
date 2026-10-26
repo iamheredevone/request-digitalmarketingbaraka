@@ -5,10 +5,17 @@
   const SERVICE_TEMPLATE = document.querySelector('[data-editor-section="services"] > .service-card')?.cloneNode(true);
   const DIGITAL_TEMPLATE = document.querySelector('[data-editor-section="digital"] .digital-grid > .digital-card')?.cloneNode(true);
   const ICONS = {
-    file: "fa-regular fa-file-lines",
-    palette: "fa-solid fa-palette",
-    location: "fa-solid fa-location-dot",
-    clipboard: "fa-regular fa-clipboard"
+    file: "fa-regular fa-file-lines", palette: "fa-solid fa-palette", location: "fa-solid fa-location-dot", clipboard: "fa-regular fa-clipboard",
+    truck: "fa-solid fa-truck", box: "fa-solid fa-box", "boxes-stacked": "fa-solid fa-boxes-stacked", warehouse: "fa-solid fa-warehouse",
+    store: "fa-solid fa-store", building: "fa-solid fa-building", map: "fa-solid fa-map", phone: "fa-solid fa-phone",
+    envelope: "fa-solid fa-envelope", comments: "fa-solid fa-comments", bullhorn: "fa-solid fa-bullhorn", image: "fa-solid fa-image",
+    camera: "fa-solid fa-camera", video: "fa-solid fa-video", "bag-shopping": "fa-solid fa-bag-shopping", "cart-shopping": "fa-solid fa-cart-shopping",
+    tag: "fa-solid fa-tag", gift: "fa-solid fa-gift", star: "fa-solid fa-star", heart: "fa-solid fa-heart",
+    "calendar-days": "fa-solid fa-calendar-days", clock: "fa-solid fa-clock", users: "fa-solid fa-users", "user-tie": "fa-solid fa-user-tie",
+    handshake: "fa-solid fa-handshake", "chart-line": "fa-solid fa-chart-line", "money-bill": "fa-solid fa-money-bill", "credit-card": "fa-solid fa-credit-card",
+    gear: "fa-solid fa-gear", "shield-halved": "fa-solid fa-shield-halved", "circle-check": "fa-solid fa-circle-check", "circle-info": "fa-solid fa-circle-info",
+    lightbulb: "fa-solid fa-lightbulb", rocket: "fa-solid fa-rocket", globe: "fa-solid fa-globe", link: "fa-solid fa-link",
+    download: "fa-solid fa-download", print: "fa-solid fa-print", pen: "fa-solid fa-pen", book: "fa-solid fa-book"
   };
 
   function validImage(value) {
@@ -81,6 +88,7 @@
       body.querySelector("h3").textContent = item.title;
       body.querySelector("p").textContent = item.description;
       icon.className = ICONS[item.icon] || ICONS.file;
+      icon.style.color = /^#[0-9a-f]{6}$/i.test(item.iconColor || "") ? item.iconColor : "";
       applyItemStyle(card, item, cols);
       section.append(card);
     });
