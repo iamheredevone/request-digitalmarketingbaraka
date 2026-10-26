@@ -6,19 +6,19 @@
   const preview = $("#previewFrame"), layers = $("#layers"), props = $("#properties"), canvasStage = document.querySelector(".canvas-stage");
   const labels = { hero: "Hero", services: "Layanan", custom: "Konten Tambahan", digital: "Materi Digital", gallery: "Galeri", contact: "Kontak" };
   const icons = [
-  ["file","File"],["palette","Palet"],["location","Lokasi"],["clipboard","Checklist"],
-  ["truck","Truk / Pengiriman"],["box","Paket"],["boxes-stacked","Tumpukan Paket"],
-  ["warehouse","Gudang"],["store","Toko"],["building","Gedung"],["map","Peta"],
-  ["phone","Telepon"],["envelope","Email"],["comments","Chat"],["bullhorn","Promosi"],
-  ["image","Gambar"],["camera","Kamera"],["video","Video"],["bag-shopping","Belanja"],
-  ["cart-shopping","Keranjang"],["tag","Label"],["gift","Hadiah"],["star","Bintang"],
-  ["heart","Hati"],["calendar-days","Kalender"],["clock","Jam"],["users","Tim"],
-  ["user-tie","Profesional"],["handshake","Kemitraan"],["chart-line","Grafik"],
-  ["money-bill","Uang"],["credit-card","Pembayaran"],["gear","Pengaturan"],
-  ["shield-halved","Keamanan"],["circle-check","Centang"],["circle-info","Info"],
-  ["lightbulb","Ide"],["rocket","Roket"],["globe","Web"],["link","Tautan"],
-  ["download","Unduh"],["print","Cetak"],["pen","Tulis"],["book","Buku"]
-];
+    ["file","File"],["palette","Palet"],["location","Lokasi"],["clipboard","Checklist"],
+    ["truck","Truk / Pengiriman"],["box","Paket"],["boxes-stacked","Tumpukan Paket"],
+    ["warehouse","Gudang"],["store","Toko"],["building","Gedung"],["map","Peta"],
+    ["phone","Telepon"],["envelope","Email"],["comments","Chat"],["bullhorn","Promosi"],
+    ["image","Gambar"],["camera","Kamera"],["video","Video"],["bag-shopping","Belanja"],
+    ["cart-shopping","Keranjang"],["tag","Label"],["gift","Hadiah"],["star","Bintang"],
+    ["heart","Hati"],["calendar-days","Kalender"],["clock","Jam"],["users","Tim"],
+    ["user-tie","Profesional"],["handshake","Kemitraan"],["chart-line","Grafik"],
+    ["money-bill","Uang"],["credit-card","Pembayaran"],["gear","Pengaturan"],
+    ["shield-halved","Keamanan"],["circle-check","Centang"],["circle-info","Info"],
+    ["lightbulb","Ide"],["rocket","Roket"],["globe","Web"],["link","Tautan"],
+    ["download","Unduh"],["print","Cetak"],["pen","Tulis"],["book","Buku"]
+  ];
   const paletteColors = ["#063e67", "#0b6c83", "#16a085", "#f27d12", "#f04353", "#8754e8", "#e8f4f7", "#ffffff"];
   async function req(url, opt = {}) { const r = await fetch(url,opt), j = await r.json().catch(()=>({})); if(!r.ok) throw Error(j.error||j.message||`HTTP ${r.status}`); return j; }
   const headers = () => ({"Content-Type":"application/json","X-Admin-Session":session});
@@ -32,7 +32,7 @@
     const surfaceDefaults={background:"",backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:""};
     model.services={...surfaceDefaults,...defaults.services,...model.services};model.digital={...surfaceDefaults,...defaults.digital,...model.digital};
     model.custom={title:"Konten Tambahan",columns:3,gap:20,items:[],...surfaceDefaults,...defaults.custom,...model.custom,items:Array.isArray(model.custom?.items)?model.custom.items:[]};model.contact={...defaults.contact,...model.contact};
-    const styleDefaults={backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",radius:"",borderColor:"",borderWidth:0,textAlign:"left",iconColor:""};
+    const styleDefaults={iconColor:"",backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",radius:"",borderColor:"",borderWidth:0,textAlign:"left"};
     for(const section of ["services","digital","custom"])model[section].items=(model[section].items||[]).map(item=>({...styleDefaults,...item}));
     model.hero={backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",...model.hero};
     return model;
@@ -67,9 +67,7 @@
     props.replaceChildren();const s=selected.section;
     if(selected.type==="item"){
       const item=list(s).find(x=>x.id===selected.id);if(!item){selected={type:"section",section:"hero"};drawProps();return}const kind=s==="services"?"Kartu layanan":s==="digital"?"Materi digital":item.type==="text"?"Elemen teks":"Card custom";let g=group(kind);
-      if(s==="services"){field(g,"Judul",item.title,v=>item.title=v);field(g,"Deskripsi",item.description,v=>item.description=v,{area:true});field(g,"Ikon",item.icon,v=>item.icon=v,{options:icons});
-color(g,"Warna ikon (custom)",item.iconColor,v=>item.iconColor=v);
-addPalette(g,"Palet cepat · ikon",v=>item.iconColor=v);field(g,"Link tujuan",item.href,v=>item.href=v)}
+      if(s==="services"){field(g,"Judul",item.title,v=>item.title=v);field(g,"Deskripsi",item.description,v=>item.description=v,{area:true});field(g,"Ikon",item.icon,v=>item.icon=v,{options:icons});color(g,"Warna ikon (custom)",item.iconColor,v=>item.iconColor=v);addPalette(g,"Palet cepat · ikon",v=>item.iconColor=v);field(g,"Link tujuan",item.href,v=>item.href=v)}
       else if(s==="digital"){field(g,"Judul",item.title,v=>item.title=v);field(g,"Path / URL gambar",item.image,v=>item.image=v);field(g,"Teks alt",item.alt,v=>item.alt=v);field(g,"Link tujuan",item.href,v=>item.href=v)}
       else{field(g,"Jenis elemen",item.type,v=>{item.type=v;drawProps()},{options:[["text","Teks"],["card","Card"]]});field(g,"Judul",item.title,v=>item.title=v);field(g,item.type==="text"?"Isi teks":"Deskripsi",item.text,v=>item.text=v,{area:true});if(item.type==="card"){field(g,"Gambar (opsional)",item.image,v=>item.image=v);field(g,"Teks alt",item.alt,v=>item.alt=v);field(g,"Link tujuan (opsional)",item.href,v=>item.href=v)}}
       field(g,"Lebar kolom",item.width,v=>item.width=v,{type:"range",min:1,max:5});designControls(item,"Warna & efek");return;
@@ -80,7 +78,7 @@ addPalette(g,"Palet cepat · ikon",v=>item.iconColor=v);field(g,"Link tujuan",it
     else{let g=group("Galeri");let n=document.createElement("p");n.className="property-note";n.textContent="Carousel tetap dikelola lewat Admin Galeri agar upload dan kontraknya tetap terjaga.";g.append(n)}
   }  function drawAll(){drawLayers();drawProps();paint();$("#undoButton").disabled=hi<=0;$("#redoButton").disabled=hi>=history.length-1}
   function newId(prefix){return `${prefix}-${crypto.randomUUID().replace(/-/g,"").slice(0,12)}`}
-  function addComponent(){let s=selected.section;if(s==="custom"){addCustom("card");return}let x=list(s),item=s==="services"?{id:newId("service"),title:"Layanan baru",description:"Deskripsi layanan",href:"https://example.com",icon:"file",color:"blue",width:1,background:"",textColor:"",fontSize:16}:{id:newId("material"),title:"Materi baru",href:"https://example.com",image:"assets/map.svg",alt:"",width:1,background:"",textColor:"",fontSize:16};Object.assign(item,{backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",radius:"",borderColor:"",borderWidth:0,textAlign:"left"});x.push(item);selected={type:"item",section:s,id:item.id};historyPush();drawAll();revealPreviewSelection();status("Card ditambahkan.")}
+  function addComponent(){let s=selected.section;if(s==="custom"){addCustom("card");return}let x=list(s),item=s==="services"?{id:newId("service"),title:"Layanan baru",description:"Deskripsi layanan",href:"https://example.com",icon:"file",color:"blue",width:1,background:"",textColor:"",fontSize:16}:{id:newId("material"),title:"Materi baru",href:"https://example.com",image:"assets/map.svg",alt:"",width:1,background:"",textColor:"",fontSize:16};Object.assign(item,{iconColor:"",backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,glow:0,glowColor:"",radius:"",borderColor:"",borderWidth:0,textAlign:"left"});x.push(item);selected={type:"item",section:s,id:item.id};historyPush();drawAll();revealPreviewSelection();status("Card ditambahkan.")}
   function addCustom(type){const item={id:newId("custom"),type,title:type==="text"?"Teks baru":"Card baru",text:type==="text"?"Tulis teks di sini.":"Deskripsi card baru.",href:"",image:"",alt:"",width:1,background:type==="text"?"":"#ffffff",backgroundEnd:"",gradientAngle:135,backgroundOpacity:100,textColor:"#163b52",fontSize:18,glow:0,glowColor:"#0b6c83",radius:type==="text"?0:24,borderColor:"",borderWidth:0,textAlign:"left"};data.custom.items.push(item);selected={type:"item",section:"custom",id:item.id};historyPush();drawAll();revealPreviewSelection();status(type==="text"?"Elemen teks ditambahkan.":"Card ditambahkan.")}
   function duplicate(){let x=list(selected.section),i=x.findIndex(y=>y.id===selected.id);if(i<0)return;let item=copy(x[i]);item.id=newId(selected.section==="services"?"service":selected.section==="digital"?"material":"custom");x.splice(i+1,0,item);selected.id=item.id;historyPush();drawAll();revealPreviewSelection();status("Komponen diduplikasi.")}
   function remove(){let x=list(selected.section),i=x.findIndex(y=>y.id===selected.id);if(i<0)return;let s=selected.section;x.splice(i,1);selected={type:"section",section:s};historyPush();drawAll();status("Komponen dihapus.")}
