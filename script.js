@@ -11,9 +11,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Header berubah saat scroll ----------
   const header = document.querySelector(".site-header");
   if (header) {
-    const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 40);
+    let scrollScheduled = false;
+    const onScroll = () => {
+      if (scrollScheduled) return;
+      scrollScheduled = true;
+      requestAnimationFrame(() => {
+        scrollScheduled = false;
+        const scrollY = Math.max(window.scrollY || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0);
+        header.classList.toggle("scrolled", scrollY > 40);
+      });
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("pageshow", onScroll, { passive: true });
   }
 
   // ---------- Link kontak ----------

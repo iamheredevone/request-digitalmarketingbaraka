@@ -247,6 +247,11 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(reportPreviewHeight);
     window.addEventListener("message", (event) => {
       if (event.origin !== location.origin || event.source !== window.parent || !event.data) return;
+      if (event.data.type === "site-editor-preview-scroll") {
+        const header = document.querySelector(".site-header");
+        if (header) header.classList.toggle("scrolled", Number(event.data.scrollY) > 40);
+        return;
+      }
       if (event.data.type === "site-editor-preview-init") {
         window.parent.postMessage({ type: "site-editor-preview-ready" }, location.origin);
         return;
