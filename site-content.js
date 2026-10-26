@@ -139,11 +139,19 @@
       icon.className = ICONS[item.icon] || ICONS.file;
       const accent = HEX.test(item.accent || "") ? item.accent : "";
       icon.style.color = HEX.test(item.iconColor || "") ? item.iconColor : "";
-      if (box) box.style.background = HEX.test(item.iconBg || "") ? item.iconBg : (accent || "");
+      const boxColor = HEX.test(item.iconBg || "") ? item.iconBg : accent;
+      if (box) {
+        box.style.background = boxColor || "";
+        box.style.boxShadow = boxColor ? `0 10px 22px ${rgba(boxColor, 35)}` : "";
+      }
       const num = card.querySelector(".service-number");
       const arrow = card.querySelector(".service-arrow");
       if (num) num.style.color = accent;
-      if (arrow) arrow.style.color = accent;
+      if (arrow) {
+        arrow.style.color = accent;
+        arrow.style.background = accent ? rgba(accent, 16) : "";
+      }
+      if (accent) card.style.setProperty("--card-accent", accent); else card.style.removeProperty("--card-accent");
       applyItemStyle(card, item, cols);
       section.append(card);
     });
