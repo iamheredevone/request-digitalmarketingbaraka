@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 46"><rect width="44" height="46" fill="#fff"/><rect x="3" y="14" width="38" height="16" fill="#0d3f8f"/><rect x="3" y="30" width="38" height="3" fill="#e3262e"/><text x="22" y="26" font-family="Arial Black,Arial" font-size="8" fill="#fff" text-anchor="middle" font-style="italic">BARAKA</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#e5f2ff"/><stop offset="1" stop-color="#edf0ff"/></linearGradient><linearGradient id="blue" x2="1" y2="1"><stop stop-color="#12549a"/><stop offset="1" stop-color="#073767"/></linearGradient><filter id="shadow" x="-.3" y="-.3" width="1.7" height="1.8"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#173c5c" flood-opacity=".2"/></filter></defs>
+  <rect width="320" height="200" rx="22" fill="url(#bg)"/><circle cx="49" cy="45" r="26" fill="#fff" opacity=".55"/><circle cx="274" cy="154" r="37" fill="#d5e9fb"/>
+  <g filter="url(#shadow)"><rect x="38" y="54" width="244" height="92" rx="22" fill="#fff"/><image href="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" x="58" y="77" width="204" height="48" preserveAspectRatio="xMidYMid meet"/></g>
+  <circle cx="70" cy="43" r="5" fill="#f2b943"/><circle cx="251" cy="158" r="7" fill="#f2b943"/>
+</svg>

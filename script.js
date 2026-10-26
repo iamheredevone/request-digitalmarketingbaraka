@@ -2,8 +2,6 @@
 const CONFIG = {
   whatsapp: "6282211958695", // format internasional tanpa +
   waText: "Halo Baraka Express, saya ingin bertanya tentang layanan.",
-  email: "barakaexpress_id@gmail.com",
-  mapsUrl: "https://share.google/Z3KPMU4mmRjNcqhy6",
   galleryInterval: 4000, // jeda slide otomatis (ms)
   galleryJsonUrl: "https://digitalmarketing.iamhere-devone.workers.dev/?resource=gallery"
 };
@@ -23,12 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const type = el.dataset.contactLink;
     if (type === "whatsapp") {
       el.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(CONFIG.waText)}`;
-      el.target = "_blank"; el.rel = "noopener";
-    } else if (type === "email") {
-      el.href = `mailto:${CONFIG.email}`;
-    } else if (type === "maps") {
-      el.href = CONFIG.mapsUrl;
-      el.target = "_blank"; el.rel = "noopener";
+      el.target = "_blank";
+      el.rel = "noopener";
     }
   });
 

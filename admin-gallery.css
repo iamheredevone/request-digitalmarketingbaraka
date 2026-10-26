@@ -126,3 +126,5 @@ button.upload{white-space:nowrap}
 }
 @media(max-width:380px){.logo{width:58px;height:58px}.panel{padding:24px 16px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+.editor-shortcut{display:flex;justify-content:space-between;align-items:center;margin:0 0 16px;padding:12px 14px;border:1px solid #d8e6ec;border-radius:10px;background:#f5fafc;color:#07577d;font-size:13px;font-weight:700;text-decoration:none}.editor-shortcut:hover{background:#e9f5f8}

@@ -17,8 +17,8 @@
  *   DRIVE_FOLDER_ID   : ID folder foto audit (harus di Shared Drive)
  *   GALLERY_ADMIN_ID, GALLERY_ADMIN_PASSWORD : Secret login admin gallery
  *   GALLERY_KV        : binding KV untuk data gallery dan sesi login
- *   ALLOWED_ORIGINS   : opsional, daftar origin dipisah koma, mis. https://akun.github.io
- *                       Kosong = semua origin boleh.
+ *   ALLOWED_ORIGINS   : origin GitHub Pages untuk admin, daftar dipisah koma
+ *                       Kosong = akses admin ditolak; endpoint form tetap mengikuti perilaku lama.
  * SHEET_NAME tidak dipakai lagi (nama tab ditentukan di bawah).
  */
 
@@ -342,6 +342,67 @@ const DEFAULT_GALLERY = { slides: [
   { path: 'assets/Cabang Mojokerto Timur WEB.png', alt: 'Cabang Mojokerto Timur' }
 ] };
 
+const SITE_EDITOR_VERSION_LIMIT = 20;
+const SITE_EDITOR_CONTENT_LIMIT = 256 * 1024;
+const SITE_EDITOR_SECTIONS = ['hero', 'services', 'digital', 'gallery', 'contact'];
+
+function editorString(value, max) {
+  return typeof value === 'string' && value.length <= max && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(value);
+}
+function editorColor(value) {
+  return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+function editorHref(value) {
+  if (!editorString(value, 1200)) return false;
+  const lower = value.toLowerCase();
+  return !lower.startsWith('javascript:') && (lower.startsWith('https://') || lower.startsWith('http://') || lower.startsWith('mailto:') || lower.startsWith('tel:') || (value.startsWith('/') && !value.startsWith('//')) || value.startsWith('./') || value.startsWith('#'));
+}
+function editorImage(value) {
+  return editorString(value, 1200) && (/^https:\/\//i.test(value) || (/^assets\/[a-zA-Z0-9_./ -]+$/.test(value) && !value.split('/').includes('..')));
+}
+function validateSiteContent(input) {
+  if (!input || typeof input !== 'object' || input.schemaVersion !== 1) return null;
+  const sections = input.sections;
+  if (!Array.isArray(sections) || sections.length !== SITE_EDITOR_SECTIONS.length || new Set(sections).size !== sections.length || sections.some((id) => !SITE_EDITOR_SECTIONS.includes(id))) return null;
+  const theme = input.theme || {};
+  const hero = input.hero || {};
+  const services = input.services || {};
+  const digital = input.digital || {};
+  const contact = input.contact || {};
+  if (!editorColor(theme.background) || !editorColor(theme.primary)) return null;
+  if (!editorString(hero.eyebrow, 120) || !editorString(hero.title, 180) || !editorString(hero.description, 600) || !editorImage(hero.image) || !editorColor(hero.background)) return null;
+  const validGrid = (grid) => Number.isInteger(grid.columns) && grid.columns >= 1 && grid.columns <= 5 && Number.isInteger(grid.gap) && grid.gap >= 0 && grid.gap <= 48 && Array.isArray(grid.items) && grid.items.length <= 12;
+  if (!validGrid(services) || !validGrid(digital)) return null;
+  const idPattern = /^[a-zA-Z0-9_-]{1,40}$/;
+  const validStyle = (item) => (item.background === '' || editorColor(item.background)) && (item.textColor === '' || editorColor(item.textColor)) && Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 32 && Number.isInteger(item.width) && item.width >= 1 && item.width <= 5;
+  if (services.items.some((item) => !item || !idPattern.test(item.id) || !editorString(item.title, 120) || !editorString(item.description, 300) || !editorHref(item.href) || !['file', 'palette', 'location', 'clipboard'].includes(item.icon) || !['blue', 'purple', 'green', 'orange'].includes(item.color) || !validStyle(item))) return null;
+  if (digital.items.some((item) => !item || !idPattern.test(item.id) || !editorString(item.title, 120) || !editorHref(item.href) || !editorImage(item.image) || !editorString(item.alt, 240) || !validStyle(item))) return null;
+  const componentIds = [...services.items, ...digital.items].map((item) => item.id);
+  if (new Set(componentIds).size !== componentIds.length) return null;
+  if (!editorString(contact.phone, 50) || !/^[+0-9 ()-]+$/.test(contact.phone) || !editorString(contact.whatsapp, 24) || !/^\d{8,20}$/.test(contact.whatsapp) || !editorString(contact.email, 160) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email) || !editorString(contact.address, 300) || !editorString(contact.weekday, 80) || !editorString(contact.weekdayHours, 80) || !editorString(contact.sunday, 40) || !editorString(contact.sundayStatus, 40)) return null;
+  return {
+    schemaVersion: 1,
+    sections: sections.slice(),
+    theme: { background: theme.background, primary: theme.primary },
+    hero: { eyebrow: hero.eyebrow, title: hero.title, description: hero.description, image: hero.image, background: hero.background },
+    services: { columns: services.columns, gap: services.gap, items: services.items.map((item) => ({ id: item.id, title: item.title, description: item.description, href: item.href, icon: item.icon, color: item.color, width: item.width, background: item.background, textColor: item.textColor, fontSize: item.fontSize })) },
+    digital: { columns: digital.columns, gap: digital.gap, items: digital.items.map((item) => ({ id: item.id, title: item.title, href: item.href, image: item.image, alt: item.alt, width: item.width, background: item.background, textColor: item.textColor, fontSize: item.fontSize })) },
+    contact: { phone: contact.phone, whatsapp: contact.whatsapp, email: contact.email, address: contact.address, weekday: contact.weekday, weekdayHours: contact.weekdayHours, sunday: contact.sunday, sundayStatus: contact.sundayStatus }
+  };
+}
+async function galleryLoginRateKey(request) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown-client';
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ip));
+  const suffix = Array.from(new Uint8Array(digest).slice(0, 12)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return 'gallery-login-rate:' + suffix;
+}
+async function readLimitedJson(request) {
+  const declaredLength = Number(request.headers.get('Content-Length') || 0);
+  if (declaredLength > SITE_EDITOR_CONTENT_LIMIT) return { error: 'Data editor terlalu besar (maksimal 256 KB)' };
+  const text = await request.text();
+  if (new TextEncoder().encode(text).length > SITE_EDITOR_CONTENT_LIMIT) return { error: 'Data editor terlalu besar (maksimal 256 KB)' };
+  try { return { value: JSON.parse(text) }; } catch (err) { return { error: 'JSON editor tidak valid' }; }
+}
 /* ===================== ENTRY POINT ===================== */
 export default {
   async fetch(request, env, ctx) {
@@ -364,7 +425,101 @@ export default {
         return new Response(image.body, { status: 200, headers });
       } catch (err) { return fail('Gagal mengambil gambar dari Drive', 500, cors); }
     }
-    if (url.searchParams.get('resource') === 'gallery') {
+    if (url.searchParams.get('resource') === 'site-editor') {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      const action = url.searchParams.get('action') || 'published';
+      if (request.method === 'GET' && action === 'published') {
+        try {
+          const stored = env.GALLERY_KV ? await env.GALLERY_KV.get('site-editor:published', 'json') : null;
+          const response = json({ content: stored && stored.content ? stored.content : null, version: stored && stored.version ? stored.version : null, updatedAt: stored && stored.updatedAt ? stored.updatedAt : null }, 200, cors);
+          response.headers.set('Cache-Control', 'no-store');
+          return response;
+        } catch (err) { return fail('Gagal membaca halaman terbit', 500, cors); }
+      }
+      if (!allowedList(env).length || !originAllowed(request.headers.get('Origin'), env)) return fail('Origin admin belum diizinkan', 403, cors);
+      if (!env.GALLERY_KV) return fail('Binding GALLERY_KV belum dikonfigurasi', 503, cors);
+      const session = request.headers.get('X-Admin-Session') || '';
+      if (!session || !(await env.GALLERY_KV.get('gallery-session:' + session))) return fail('Sesi login berakhir, silakan login kembali', 401, cors);
+      if (request.method === 'GET' && action === 'draft') {
+        const [draft, published] = await Promise.all([
+          env.GALLERY_KV.get('site-editor:draft', 'json'),
+          env.GALLERY_KV.get('site-editor:published', 'json')
+        ]);
+        return json({ draft: draft || null, published: published || null }, 200, cors);
+      }
+      if (request.method === 'GET' && action === 'versions') {
+        const versions = await env.GALLERY_KV.get('site-editor:versions', 'json');
+        return json({ versions: Array.isArray(versions) ? versions : [] }, 200, cors);
+      }
+      if (request.method !== 'POST') return fail('Method tidak diizinkan', 405, cors);
+      if (action === 'logout') {
+        await env.GALLERY_KV.delete('gallery-session:' + session);
+        return json({ ok: true }, 200, cors);
+      }
+      const parsed = await readLimitedJson(request);
+      if (parsed.error) return fail(parsed.error, 400, cors);
+      if (action === 'baseline') {
+        const [published, existingVersions] = await Promise.all([
+          env.GALLERY_KV.get('site-editor:published', 'json'),
+          env.GALLERY_KV.get('site-editor:versions', 'json')
+        ]);
+        if (published || (Array.isArray(existingVersions) && existingVersions.length)) return json({ ok: true, created: false }, 200, cors);
+        const content = validateSiteContent(parsed.value && parsed.value.content);
+        if (!content) return fail('Struktur halaman tidak valid', 400, cors);
+        const version = crypto.randomUUID();
+        const createdAt = new Date().toISOString();
+        await env.GALLERY_KV.put('site-editor:version:' + version, JSON.stringify({ content, updatedAt: createdAt }));
+        await env.GALLERY_KV.put('site-editor:versions', JSON.stringify([{ id: version, createdAt, baseline: true }]));
+        return json({ ok: true, created: true, version }, 200, cors);
+      }
+      if (action === 'draft') {
+        const content = validateSiteContent(parsed.value && parsed.value.content);
+        if (!content) return fail('Struktur halaman tidak valid', 400, cors);
+        const draft = { content, updatedAt: new Date().toISOString() };
+        await env.GALLERY_KV.put('site-editor:draft', JSON.stringify(draft));
+        return json({ ok: true, updatedAt: draft.updatedAt }, 200, cors);
+      }
+      if (action === 'publish' || action === 'rollback') {
+        let content;
+        let rolledBackFrom = null;
+        if (action === 'publish') {
+          const draft = await env.GALLERY_KV.get('site-editor:draft', 'json');
+          if (!draft || !draft.content) return fail('Simpan draft terlebih dahulu', 409, cors);
+          content = validateSiteContent(draft.content);
+        } else {
+          const versionId = parsed.value && parsed.value.versionId;
+          if (!/^[a-f0-9-]{36}$/i.test(String(versionId || ''))) return fail('Versi rollback tidak valid', 400, cors);
+          const versions = await env.GALLERY_KV.get('site-editor:versions', 'json') || [];
+          if (!versions.some((version) => version.id === versionId)) return fail('Versi tidak ditemukan', 404, cors);
+          const snapshot = await env.GALLERY_KV.get('site-editor:version:' + versionId, 'json');
+          if (!snapshot || !snapshot.content) return fail('Data versi tidak ditemukan', 404, cors);
+          content = validateSiteContent(snapshot.content);
+          rolledBackFrom = versionId;
+        }
+        if (!content) return fail('Isi halaman tidak valid', 400, cors);
+        const previous = await env.GALLERY_KV.get('site-editor:published', 'json');
+        let versions = await env.GALLERY_KV.get('site-editor:versions', 'json') || [];
+        if (!Array.isArray(versions)) versions = [];
+        if (previous && previous.content) {
+          const previousId = previous.version || crypto.randomUUID();
+          await env.GALLERY_KV.put('site-editor:version:' + previousId, JSON.stringify({ content: previous.content, updatedAt: previous.updatedAt || null }));
+          versions = [{ id: previousId, createdAt: previous.updatedAt || new Date().toISOString() }, ...versions.filter((version) => version.id !== previousId)];
+        }
+        const now = new Date().toISOString();
+        const version = crypto.randomUUID();
+        const published = { content, version, updatedAt: now, rolledBackFrom };
+        await env.GALLERY_KV.put('site-editor:published', JSON.stringify(published));
+        const removed = versions.slice(SITE_EDITOR_VERSION_LIMIT - 1);
+        versions = versions.slice(0, SITE_EDITOR_VERSION_LIMIT - 1);
+        versions = [{ id: version, createdAt: now }, ...versions];
+        await env.GALLERY_KV.put('site-editor:versions', JSON.stringify(versions));
+        for (const item of removed) await env.GALLERY_KV.delete('site-editor:version:' + item.id);
+        await env.GALLERY_KV.put('site-editor:version:' + version, JSON.stringify({ content, updatedAt: now }));
+        if (action === 'publish') await env.GALLERY_KV.delete('site-editor:draft');
+        return json({ ok: true, version, updatedAt: now, rolledBackFrom }, 200, cors);
+      }
+      return fail('Action editor tidak dikenal', 404, cors);
+    }    if (url.searchParams.get('resource') === 'gallery') {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
       if (request.method === 'GET') {
         try {
@@ -377,7 +532,17 @@ export default {
       if (url.searchParams.get('action') === 'login' && request.method === 'POST') {
         let credentials;
         try { credentials = await request.json(); } catch (err) { return fail('Data login tidak valid', 400, cors); }
-        if (!env.GALLERY_ADMIN_ID || !env.GALLERY_ADMIN_PASSWORD || credentials.id !== env.GALLERY_ADMIN_ID || credentials.password !== env.GALLERY_ADMIN_PASSWORD) return fail('ID atau password salah', 401, cors);
+        const rateKey = await galleryLoginRateKey(request);
+        const rate = await env.GALLERY_KV.get(rateKey, 'json') || { attempts: 0, lockedUntil: 0 };
+        if (rate.lockedUntil > Date.now()) return fail('Terlalu banyak percobaan login. Coba lagi setelah 15 menit.', 429, cors);
+        const validCredentials = env.GALLERY_ADMIN_ID && env.GALLERY_ADMIN_PASSWORD && credentials && credentials.id === env.GALLERY_ADMIN_ID && credentials.password === env.GALLERY_ADMIN_PASSWORD;
+        if (!validCredentials) {
+          const attempts = (Number(rate.attempts) || 0) + 1;
+          const lockedUntil = attempts >= 5 ? Date.now() + 15 * 60 * 1000 : 0;
+          await env.GALLERY_KV.put(rateKey, JSON.stringify({ attempts, lockedUntil }), { expirationTtl: 900 });
+          return fail(lockedUntil ? 'Terlalu banyak percobaan login. Coba lagi setelah 15 menit.' : 'ID atau password salah', lockedUntil ? 429 : 401, cors);
+        }
+        await env.GALLERY_KV.delete(rateKey);
         const session = crypto.randomUUID();
         await env.GALLERY_KV.put('gallery-session:' + session, '1', { expirationTtl: 1800 });
         return json({ ok: true, session, expiresIn: 1800 }, 200, cors);
