@@ -47,6 +47,11 @@
       ".custom-block img,.custom-block-image,.digital-thumb{max-width:100%;height:auto}";
     document.head.append(st);
   })();
+  function tint(hex, strength) {
+    const n = parseInt(hex.slice(1), 16);
+    const mix = (c) => Math.round(255 - (255 - c) * strength);
+    return `rgb(${mix((n >> 16) & 255)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`;
+  }
   function innerWidth(el) {
     const cs = getComputedStyle(el);
     const w = el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
@@ -138,20 +143,19 @@
       body.querySelector("p").textContent = item.description;
       icon.className = ICONS[item.icon] || ICONS.file;
       const accent = HEX.test(item.accent || "") ? item.accent : "";
+      if (accent) {
+        card.style.setProperty("--c", accent);
+        card.style.setProperty("--c2", tint(accent, 0.14));
+      } else {
+        card.style.removeProperty("--c");
+        card.style.removeProperty("--c2");
+      }
       icon.style.color = HEX.test(item.iconColor || "") ? item.iconColor : "";
-      const boxColor = HEX.test(item.iconBg || "") ? item.iconBg : accent;
+      const customBox = HEX.test(item.iconBg || "") ? item.iconBg : "";
       if (box) {
-        box.style.background = boxColor || "";
-        box.style.boxShadow = boxColor ? `0 10px 22px ${rgba(boxColor, 35)}` : "";
+        box.style.background = customBox;
+        box.style.boxShadow = customBox ? `0 12px 24px ${rgba(customBox, 40)}` : "";
       }
-      const num = card.querySelector(".service-number");
-      const arrow = card.querySelector(".service-arrow");
-      if (num) num.style.color = accent;
-      if (arrow) {
-        arrow.style.color = accent;
-        arrow.style.background = accent ? rgba(accent, 16) : "";
-      }
-      if (accent) card.style.setProperty("--card-accent", accent); else card.style.removeProperty("--card-accent");
       applyItemStyle(card, item, cols);
       section.append(card);
     });
