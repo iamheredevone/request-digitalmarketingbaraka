@@ -20,12 +20,12 @@
     const lower = value.toLowerCase();
     return !lower.startsWith("javascript:") && (lower.startsWith("https://") || lower.startsWith("http://") || lower.startsWith("mailto:") || lower.startsWith("tel:") || (value.startsWith("/") && !value.startsWith("//")) || value.startsWith("./") || value.startsWith("#"));
   }
-  function applyItemStyle(element, item) {
+  function applyItemStyle(element, item, columns) {
     element.style.backgroundColor = /^#[0-9a-f]{6}$/i.test(item.background || "") ? item.background : "";
     element.style.color = /^#[0-9a-f]{6}$/i.test(item.textColor || "") ? item.textColor : "";
     element.style.fontSize = Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 32 ? `${item.fontSize}px` : "";
-    const columns = Number(element.parentElement.dataset.editorColumns || 1);
-    element.style.gridColumn = `span ${Math.max(1, Math.min(Number(item.width) || 1, columns))}`;
+    const columnCount = Number(columns || (element.parentElement && element.parentElement.dataset.editorColumns) || 1);
+    element.style.gridColumn = `span ${Math.max(1, Math.min(Number(item.width) || 1, columnCount))}`;
   }
 
   function renderServices(model) {
@@ -52,7 +52,7 @@
       body.querySelector("h3").textContent = item.title;
       body.querySelector("p").textContent = item.description;
       icon.className = ICONS[item.icon] || ICONS.file;
-      applyItemStyle(card, item);
+      applyItemStyle(card, item, cols);
       section.append(card);
     });
   }
@@ -81,7 +81,7 @@
       image.alt = item.alt;
       title.textContent = item.title;
       title.style.whiteSpace = "pre-line";
-      applyItemStyle(card, item);
+      applyItemStyle(card, item, cols);
       grid.append(card);
     });
   }
