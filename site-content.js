@@ -140,6 +140,7 @@
   }
 
   if (editorPreview) {
+    window.__siteEditorApplyContent = applyContent;
     window.addEventListener("message", (event) => {
       if (event.origin !== location.origin || event.source !== window.parent || !event.data) return;
       if (event.data.type === "site-editor-preview-init") {
