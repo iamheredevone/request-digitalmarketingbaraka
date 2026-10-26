@@ -141,6 +141,17 @@
 
   if (editorPreview) {
     window.__siteEditorApplyContent = applyContent;
+    const reportPreviewHeight = () => requestAnimationFrame(() => {
+      const height = Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0);
+      window.parent.postMessage({ type: "site-editor-preview-height", height }, location.origin);
+    });
+    if ("ResizeObserver" in window) {
+      const previewResizeObserver = new ResizeObserver(reportPreviewHeight);
+      previewResizeObserver.observe(document.documentElement);
+      if (document.body) previewResizeObserver.observe(document.body);
+    }
+    window.addEventListener("load", reportPreviewHeight, { once: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(reportPreviewHeight);
     window.addEventListener("message", (event) => {
       if (event.origin !== location.origin || event.source !== window.parent || !event.data) return;
       if (event.data.type === "site-editor-preview-init") {
@@ -150,6 +161,7 @@
       if (event.data.type !== "site-editor-preview") return;
       try {
         applyContent(event.data.content);
+        reportPreviewHeight();
         window.parent.postMessage({ type: "site-editor-preview-applied" }, location.origin);
       } catch (error) {
         window.parent.postMessage({ type: "site-editor-preview-error", message: String(error && error.message || error) }, location.origin);
