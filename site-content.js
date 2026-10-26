@@ -141,9 +141,20 @@
 
   if (editorPreview) {
     window.addEventListener("message", (event) => {
-      if (event.origin !== location.origin || !event.data || event.data.type !== "site-editor-preview") return;
-      applyContent(event.data.content);
+      if (event.origin !== location.origin || event.source !== window.parent || !event.data) return;
+      if (event.data.type === "site-editor-preview-init") {
+        window.parent.postMessage({ type: "site-editor-preview-ready" }, location.origin);
+        return;
+      }
+      if (event.data.type !== "site-editor-preview") return;
+      try {
+        applyContent(event.data.content);
+        window.parent.postMessage({ type: "site-editor-preview-applied" }, location.origin);
+      } catch (error) {
+        window.parent.postMessage({ type: "site-editor-preview-error", message: String(error && error.message || error) }, location.origin);
+      }
     });
+    window.parent.postMessage({ type: "site-editor-preview-ready" }, location.origin);
   } else {
     loadPublished();
   }
