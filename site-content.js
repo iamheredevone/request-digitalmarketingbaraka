@@ -17,6 +17,8 @@
     lightbulb: "fa-solid fa-lightbulb", rocket: "fa-solid fa-rocket", globe: "fa-solid fa-globe", link: "fa-solid fa-link",
     download: "fa-solid fa-download", print: "fa-solid fa-print", pen: "fa-solid fa-pen", book: "fa-solid fa-book"
   };
+  const HEX = /^#[0-9a-f]{6}$/i;
+  const ORIGINAL_ADDRESS = (document.querySelector('[data-editor-contact="address"]') || {}).textContent;
 
   function validImage(value) {
     return typeof value === "string" && (/^https:\/\//i.test(value) || (/^assets\/[a-zA-Z0-9_./ -]+$/.test(value) && !value.split("/").includes("..")));
@@ -28,37 +30,83 @@
     return !lower.startsWith("javascript:") && (lower.startsWith("https://") || lower.startsWith("http://") || lower.startsWith("mailto:") || lower.startsWith("tel:") || (value.startsWith("/") && !value.startsWith("//")) || value.startsWith("./") || value.startsWith("#"));
   }
   function rgba(hex, alpha) {
-    if (!/^#[0-9a-f]{6}$/i.test(hex || "")) return "transparent";
+    if (!HEX.test(hex || "")) return "transparent";
     const value = hex.slice(1);
     const opacity = Math.max(0, Math.min(Number(alpha) || 0, 100)) / 100;
     return `rgba(${parseInt(value.slice(0, 2), 16)}, ${parseInt(value.slice(2, 4), 16)}, ${parseInt(value.slice(4, 6), 16)}, ${opacity})`;
   }
 
+
+  /* ===== Responsif otomatis: jumlah kolom menyesuaikan lebar wadah ===== */
+  const MIN_CARD = { services: 260, digital: 170, custom: 240 };
+  (function injectResponsiveCss() {
+    if (document.getElementById("site-content-responsive")) return;
+    const st = document.createElement("style");
+    st.id = "site-content-responsive";
+    st.textContent = ".service-card,.digital-card,.custom-block{min-width:0;max-width:100%;overflow-wrap:anywhere;box-sizing:border-box}" +
+      ".custom-block img,.custom-block-image,.digital-thumb{max-width:100%;height:auto}";
+    document.head.append(st);
+  })();
+  function innerWidth(el) {
+    const cs = getComputedStyle(el);
+    const w = el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    return w > 0 ? w : 0;
+  }
+  function effectiveCols(container, desired, min) {
+    const want = Math.max(1, Math.min(Number(desired) || 1, 5));
+    const w = innerWidth(container);
+    if (!w) return want;
+    const gap = parseFloat(container.style.gap) || 0;
+    const fit = Math.max(1, Math.floor((w + gap) / (min + gap)));
+    return Math.max(1, Math.min(want, fit));
+  }
+  function layoutGrid(container) {
+    if (!container || !container.dataset.desiredCols) return;
+    const cols = effectiveCols(container, container.dataset.desiredCols, Number(container.dataset.minCard) || 200);
+    container.dataset.editorColumns = String(cols);
+    container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    Array.from(container.children).forEach((child) => {
+      const w = Number(child.dataset.editorWidth) || 1;
+      child.style.gridColumn = `span ${Math.max(1, Math.min(w, cols))}`;
+    });
+  }
+  const gridObserver = "ResizeObserver" in window ? new ResizeObserver((entries) => entries.forEach((e) => layoutGrid(e.target))) : null;
+  function watchGrid(container, desired, min) {
+    container.dataset.desiredCols = String(desired);
+    container.dataset.minCard = String(min);
+    if (gridObserver && !container.dataset.watched) { container.dataset.watched = "1"; gridObserver.observe(container); }
+    layoutGrid(container);
+  }
+  window.addEventListener("resize", () => {
+    document.querySelectorAll("[data-desired-cols]").forEach(layoutGrid);
+  });
+
   function applySurface(element, item) {
-    const start = /^#[0-9a-f]{6}$/i.test(item.background || "") ? item.background : "";
-    const end = /^#[0-9a-f]{6}$/i.test(item.backgroundEnd || "") ? item.backgroundEnd : "";
+    const start = HEX.test(item.background || "") ? item.background : "";
+    const end = HEX.test(item.backgroundEnd || "") ? item.backgroundEnd : "";
     const opacity = Number.isInteger(item.backgroundOpacity) ? item.backgroundOpacity : 100;
     element.style.backgroundColor = start && !end ? rgba(start, opacity) : "";
     element.style.backgroundImage = start && end
       ? `linear-gradient(${Number.isInteger(item.gradientAngle) ? item.gradientAngle : 135}deg, ${rgba(start, opacity)}, ${rgba(end, opacity)})`
       : "";
     const glow = Math.max(0, Math.min(Number(item.glow) || 0, 48));
-    const glowColor = /^#[0-9a-f]{6}$/i.test(item.glowColor || "") ? item.glowColor : (start || "#0b6c83");
+    const glowColor = HEX.test(item.glowColor || "") ? item.glowColor : (start || "#0b6c83");
     element.style.boxShadow = glow ? `0 0 ${glow * 2}px ${rgba(glowColor, 38)}` : "";
   }
 
   function applyItemStyle(element, item, columns) {
     applySurface(element, item);
-    element.style.color = /^#[0-9a-f]{6}$/i.test(item.textColor || "") ? item.textColor : "";
-    if (/^#[0-9a-f]{6}$/i.test(item.textColor || "")) element.style.setProperty("--muted", item.textColor);
+    element.style.color = HEX.test(item.textColor || "") ? item.textColor : "";
+    if (HEX.test(item.textColor || "")) element.style.setProperty("--muted", item.textColor);
     const fontSize = Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 48 ? `${item.fontSize}px` : "";
     element.style.fontSize = fontSize;
     element.querySelectorAll(".service-body h3,.service-body p,.digital-name,.custom-block h3,.custom-block p").forEach((node) => { node.style.fontSize = fontSize; });
     element.style.textAlign = ["left", "center", "right"].includes(item.textAlign) ? item.textAlign : "";
     element.style.borderRadius = Number.isInteger(item.radius) ? `${item.radius}px` : "";
-    element.style.border = Number(item.borderWidth) > 0 && /^#[0-9a-f]{6}$/i.test(item.borderColor || "")
+    element.style.border = Number(item.borderWidth) > 0 && HEX.test(item.borderColor || "")
       ? `${item.borderWidth}px solid ${item.borderColor}`
       : "";
+    element.dataset.editorWidth = String(Math.max(1, Math.min(Number(item.width) || 1, 5)));
     const columnCount = Number(columns || (element.parentElement && element.parentElement.dataset.editorColumns) || 1);
     element.style.gridColumn = `span ${Math.max(1, Math.min(Number(item.width) || 1, columnCount))}`;
   }
@@ -69,15 +117,16 @@
     const existing = Array.from(section.querySelectorAll(":scope > .service-card"));
     const template = SERVICE_TEMPLATE || existing[0];
     if (!template) return;
-    const cols = window.matchMedia("(max-width: 760px)").matches ? 1 : model.services.columns;
+    section.style.gap = `${model.services.gap}px`;
+    const cols = effectiveCols(section, model.services.columns, MIN_CARD.services);
     section.dataset.editorColumns = String(cols);
     section.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-    section.style.gap = `${model.services.gap}px`;
     applySurface(section, model.services);
     section.replaceChildren();
     model.services.items.forEach((item, index) => {
       const card = template.cloneNode(true);
       const body = card.querySelector(".service-body");
+      const box = card.querySelector(".service-icon");
       const icon = card.querySelector(".service-icon i");
       card.className = `service-card service-${item.color}`;
       card.dataset.editorId = item.id;
@@ -88,10 +137,18 @@
       body.querySelector("h3").textContent = item.title;
       body.querySelector("p").textContent = item.description;
       icon.className = ICONS[item.icon] || ICONS.file;
-      icon.style.color = /^#[0-9a-f]{6}$/i.test(item.iconColor || "") ? item.iconColor : "";
+      const accent = HEX.test(item.accent || "") ? item.accent : "";
+      const iconTint = HEX.test(item.iconColor || "") ? item.iconColor : accent;
+      icon.style.color = iconTint;
+      if (box) box.style.background = HEX.test(item.iconBg || "") ? item.iconBg : (iconTint ? rgba(iconTint, 15) : "");
+      const num = card.querySelector(".service-number");
+      const arrow = card.querySelector(".service-arrow");
+      if (num) num.style.color = accent;
+      if (arrow) arrow.style.color = accent;
       applyItemStyle(card, item, cols);
       section.append(card);
     });
+    watchGrid(section, model.services.columns, MIN_CARD.services);
   }
 
   function renderDigital(model) {
@@ -101,10 +158,10 @@
     const existing = Array.from(grid.querySelectorAll(":scope > .digital-card"));
     const template = DIGITAL_TEMPLATE || existing[0];
     if (!template) return;
-    const cols = window.matchMedia("(max-width: 480px)").matches ? 1 : window.matchMedia("(max-width: 760px)").matches ? 2 : model.digital.columns;
+    grid.style.gap = `${model.digital.gap}px`;
+    const cols = effectiveCols(grid, model.digital.columns, MIN_CARD.digital);
     grid.dataset.editorColumns = String(cols);
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-    grid.style.gap = `${model.digital.gap}px`;
     applySurface(section, model.digital);
     grid.replaceChildren();
     model.digital.items.forEach((item) => {
@@ -122,6 +179,7 @@
       applyItemStyle(card, item, cols);
       grid.append(card);
     });
+    watchGrid(grid, model.digital.columns, MIN_CARD.digital);
   }
 
   function renderCustom(model) {
@@ -137,10 +195,10 @@
       heading.textContent = content.title || "";
       heading.hidden = !content.title;
     }
-    const cols = window.matchMedia("(max-width: 760px)").matches ? 1 : (content.columns || 3);
+    grid.style.gap = `${content.gap || 0}px`;
+    const cols = effectiveCols(grid, content.columns || 3, MIN_CARD.custom);
     grid.dataset.editorColumns = String(cols);
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-    grid.style.gap = `${content.gap || 0}px`;
     grid.replaceChildren();
     items.forEach((item) => {
       const isCard = item.type === "card";
@@ -172,6 +230,7 @@
       applyItemStyle(element, item, cols);
       grid.append(element);
     });
+    watchGrid(grid, content.columns || 3, MIN_CARD.custom);
   }
 
   function applyContent(model) {
@@ -204,8 +263,17 @@
       const node = document.querySelector(`[data-editor-contact="${key}"]`);
       if (node) node.textContent = contact[key];
     });
+    // Peta hanya dimuat ulang jika alamat benar-benar berubah (menghindari kedip di preview)
     const map = document.querySelector(".map-card iframe");
-    if (map) map.src = `https://www.google.com/maps?q=${encodeURIComponent(contact.address)}&output=embed`;
+    if (map) {
+      if (map.dataset.addr === undefined) {
+        map.dataset.addr = (ORIGINAL_ADDRESS || "").trim();
+      }
+      if (map.dataset.addr !== String(contact.address).trim()) {
+        map.dataset.addr = String(contact.address).trim();
+        map.src = `https://www.google.com/maps?q=${encodeURIComponent(contact.address)}&output=embed`;
+      }
+    }
 
     const main = document.querySelector("main");
     if (main) model.sections.forEach((id) => {
