@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sections": ["hero", "services", "digital", "gallery", "contact"],
+  "sections": ["hero", "services", "custom", "digital", "gallery", "contact"],
   "theme": { "background": "#f7fbfc", "primary": "#0b6c83" },
   "hero": {
     "eyebrow": "PORTAL LAYANAN DIGITAL",
@@ -29,6 +29,12 @@
       { "id": "material-content", "title": "Stock Content Media Sosial", "href": "https://drive.google.com/drive/folders/1uVa290xsbYgPBCNhW5u6tRdpYsPtb9xq?usp=drive_link&utm_medium=social&utm_source=heylink.me", "image": "assets/thumb-konten.svg", "alt": "Ilustrasi materi konten media sosial", "width": 1, "background": "", "textColor": "", "fontSize": 16 },
       { "id": "material-sticker", "title": "Sticker WhatsApp Bar-X", "href": "https://sticker.ly/s/YU1BJV?utm_medium=social&utm_source=heylink.me", "image": "assets/thumb-sticker.svg", "alt": "Ilustrasi stiker WhatsApp", "width": 1, "background": "", "textColor": "", "fontSize": 16 }
     ]
+  },
+  "custom": {
+    "title": "Konten Tambahan",
+    "columns": 3,
+    "gap": 20,
+    "items": []
   },
   "contact": {
     "phone": "0822 1195 8695",

@@ -196,6 +196,17 @@ a { color: inherit; text-decoration: none; }
 .service-card:hover .service-arrow { background: var(--c); color: #fff; transform: translateX(4px); }
 
 /* ---------- Digital ---------- */
+.custom-content-section { padding: 38px var(--gutter) 18px; }
+.custom-content-heading { margin: 0 0 20px; color: #073e63; font-size: clamp(22px, 2.8vw, 34px); font-weight: 800; }
+.custom-content-grid { display: grid; align-items: stretch; }
+.custom-block { min-width: 0; min-height: 120px; padding: 24px; display: flex; flex-direction: column; justify-content: center; gap: 10px; color: #163b52; background: #fff; border-radius: 24px; box-shadow: 0 12px 32px rgba(8, 60, 80, .12); overflow: hidden; }
+.custom-block h3 { margin: 0; font-size: 22px; font-weight: 800; line-height: 1.25; white-space: pre-line; }
+.custom-block p { margin: 0; color: inherit; font-size: 15px; line-height: 1.6; white-space: pre-line; }
+.custom-card { transition: transform .25s, box-shadow .25s; }
+.custom-card:hover { transform: translateY(-5px); }
+.custom-block-image { width: 100%; max-height: 260px; object-fit: cover; border-radius: 14px; }
+.custom-text { min-height: 80px; padding: 12px 4px; background: transparent; box-shadow: none; }
+.custom-text h3 { font-size: 26px; }
 .digital { padding: 52px var(--gutter) 24px; }
 .digital h2 {
   display: flex; align-items: center; gap: 14px;

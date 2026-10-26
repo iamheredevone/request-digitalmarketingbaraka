@@ -344,13 +344,16 @@ const DEFAULT_GALLERY = { slides: [
 
 const SITE_EDITOR_VERSION_LIMIT = 20;
 const SITE_EDITOR_CONTENT_LIMIT = 256 * 1024;
-const SITE_EDITOR_SECTIONS = ['hero', 'services', 'digital', 'gallery', 'contact'];
+const SITE_EDITOR_SECTIONS = ['hero', 'services', 'custom', 'digital', 'gallery', 'contact'];
 
 function editorString(value, max) {
   return typeof value === 'string' && value.length <= max && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(value);
 }
 function editorColor(value) {
   return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
+}
+function editorOptionalColor(value) {
+  return value == null || value === '' || editorColor(value);
 }
 function editorHref(value) {
   if (!editorString(value, 1200)) return false;
@@ -363,30 +366,38 @@ function editorImage(value) {
 function validateSiteContent(input) {
   if (!input || typeof input !== 'object' || input.schemaVersion !== 1) return null;
   const sections = input.sections;
-  if (!Array.isArray(sections) || sections.length !== SITE_EDITOR_SECTIONS.length || new Set(sections).size !== sections.length || sections.some((id) => !SITE_EDITOR_SECTIONS.includes(id))) return null;
+  const requiredSections = ['hero', 'services', 'digital', 'gallery', 'contact'];
+  if (!Array.isArray(sections) || (sections.length !== 5 && sections.length !== SITE_EDITOR_SECTIONS.length) || new Set(sections).size !== sections.length || requiredSections.some((id) => !sections.includes(id)) || sections.some((id) => !SITE_EDITOR_SECTIONS.includes(id))) return null;
   const theme = input.theme || {};
   const hero = input.hero || {};
   const services = input.services || {};
   const digital = input.digital || {};
+  const custom = input.custom || { title: '', columns: 3, gap: 20, items: [] };
   const contact = input.contact || {};
   if (!editorColor(theme.background) || !editorColor(theme.primary)) return null;
-  if (!editorString(hero.eyebrow, 120) || !editorString(hero.title, 180) || !editorString(hero.description, 600) || !editorImage(hero.image) || !editorColor(hero.background)) return null;
-  const validGrid = (grid) => Number.isInteger(grid.columns) && grid.columns >= 1 && grid.columns <= 5 && Number.isInteger(grid.gap) && grid.gap >= 0 && grid.gap <= 48 && Array.isArray(grid.items) && grid.items.length <= 12;
+  if (!editorString(hero.eyebrow, 120) || !editorString(hero.title, 180) || !editorString(hero.description, 600) || !editorImage(hero.image) || !editorColor(hero.background) || !editorOptionalColor(hero.backgroundEnd) || (hero.backgroundEnd && !hero.background) || (hero.gradientAngle !== undefined && (!Number.isInteger(hero.gradientAngle) || hero.gradientAngle < 0 || hero.gradientAngle > 360)) || (hero.backgroundOpacity !== undefined && (!Number.isInteger(hero.backgroundOpacity) || hero.backgroundOpacity < 0 || hero.backgroundOpacity > 100)) || (hero.glow !== undefined && (!Number.isInteger(hero.glow) || hero.glow < 0 || hero.glow > 48)) || !editorOptionalColor(hero.glowColor)) return null;
+  const validSurface = (surface) => editorOptionalColor(surface.background) && editorOptionalColor(surface.backgroundEnd) && (!surface.backgroundEnd || !!surface.background) && editorOptionalColor(surface.glowColor) && (surface.gradientAngle === undefined || (Number.isInteger(surface.gradientAngle) && surface.gradientAngle >= 0 && surface.gradientAngle <= 360)) && (surface.backgroundOpacity === undefined || (Number.isInteger(surface.backgroundOpacity) && surface.backgroundOpacity >= 0 && surface.backgroundOpacity <= 100)) && (surface.glow === undefined || (Number.isInteger(surface.glow) && surface.glow >= 0 && surface.glow <= 48));
+  const cleanSurface = (surface) => ({ background: surface.background || '', backgroundEnd: surface.backgroundEnd || '', gradientAngle: surface.gradientAngle === undefined ? 135 : surface.gradientAngle, backgroundOpacity: surface.backgroundOpacity === undefined ? 100 : surface.backgroundOpacity, glow: surface.glow === undefined ? 0 : surface.glow, glowColor: surface.glowColor || '' });
+  const validGrid = (grid) => Number.isInteger(grid.columns) && grid.columns >= 1 && grid.columns <= 5 && Number.isInteger(grid.gap) && grid.gap >= 0 && grid.gap <= 48 && Array.isArray(grid.items) && grid.items.length <= 12 && validSurface(grid);
   if (!validGrid(services) || !validGrid(digital)) return null;
   const idPattern = /^[a-zA-Z0-9_-]{1,40}$/;
-  const validStyle = (item) => (item.background === '' || editorColor(item.background)) && (item.textColor === '' || editorColor(item.textColor)) && Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 32 && Number.isInteger(item.width) && item.width >= 1 && item.width <= 5;
+  const validStyle = (item) => editorOptionalColor(item.background) && editorOptionalColor(item.backgroundEnd) && (!item.backgroundEnd || !!item.background) && editorOptionalColor(item.textColor) && editorOptionalColor(item.glowColor) && editorOptionalColor(item.borderColor) && Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 48 && Number.isInteger(item.width) && item.width >= 1 && item.width <= 5 && (item.gradientAngle === undefined || (Number.isInteger(item.gradientAngle) && item.gradientAngle >= 0 && item.gradientAngle <= 360)) && (item.backgroundOpacity === undefined || (Number.isInteger(item.backgroundOpacity) && item.backgroundOpacity >= 0 && item.backgroundOpacity <= 100)) && (item.glow === undefined || (Number.isInteger(item.glow) && item.glow >= 0 && item.glow <= 48)) && (item.radius === undefined || item.radius === '' || (Number.isInteger(item.radius) && item.radius >= 0 && item.radius <= 64)) && (item.borderWidth === undefined || (Number.isInteger(item.borderWidth) && item.borderWidth >= 0 && item.borderWidth <= 8)) && (item.textAlign === undefined || ['left', 'center', 'right'].includes(item.textAlign));
+  const cleanStyle = (item) => ({ background: item.background || '', backgroundEnd: item.backgroundEnd || '', gradientAngle: item.gradientAngle === undefined ? 135 : item.gradientAngle, backgroundOpacity: item.backgroundOpacity === undefined ? 100 : item.backgroundOpacity, textColor: item.textColor || '', fontSize: item.fontSize, width: item.width, glow: item.glow === undefined ? 0 : item.glow, glowColor: item.glowColor || '', radius: item.radius === undefined ? '' : item.radius, borderColor: item.borderColor || '', borderWidth: item.borderWidth === undefined ? 0 : item.borderWidth, textAlign: item.textAlign || 'left' });
   if (services.items.some((item) => !item || !idPattern.test(item.id) || !editorString(item.title, 120) || !editorString(item.description, 300) || !editorHref(item.href) || !['file', 'palette', 'location', 'clipboard'].includes(item.icon) || !['blue', 'purple', 'green', 'orange'].includes(item.color) || !validStyle(item))) return null;
   if (digital.items.some((item) => !item || !idPattern.test(item.id) || !editorString(item.title, 120) || !editorHref(item.href) || !editorImage(item.image) || !editorString(item.alt, 240) || !validStyle(item))) return null;
-  const componentIds = [...services.items, ...digital.items].map((item) => item.id);
+  if (!editorString(custom.title || '', 120) || !Number.isInteger(custom.columns) || custom.columns < 1 || custom.columns > 5 || !Number.isInteger(custom.gap) || custom.gap < 0 || custom.gap > 48 || !Array.isArray(custom.items) || custom.items.length > 24 || !validSurface(custom)) return null;
+  if (custom.items.some((item) => !item || !idPattern.test(item.id) || !['text', 'card'].includes(item.type) || !editorString(item.title || '', 120) || !editorString(item.text || '', 800) || (item.href !== '' && !editorHref(item.href)) || (item.image !== '' && !editorImage(item.image)) || !editorString(item.alt || '', 240) || !validStyle(item))) return null;
+  const componentIds = [...services.items, ...digital.items, ...custom.items].map((item) => item.id);
   if (new Set(componentIds).size !== componentIds.length) return null;
   if (!editorString(contact.phone, 50) || !/^[+0-9 ()-]+$/.test(contact.phone) || !editorString(contact.whatsapp, 24) || !/^\d{8,20}$/.test(contact.whatsapp) || !editorString(contact.email, 160) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email) || !editorString(contact.address, 300) || !editorString(contact.weekday, 80) || !editorString(contact.weekdayHours, 80) || !editorString(contact.sunday, 40) || !editorString(contact.sundayStatus, 40)) return null;
   return {
     schemaVersion: 1,
     sections: sections.slice(),
     theme: { background: theme.background, primary: theme.primary },
-    hero: { eyebrow: hero.eyebrow, title: hero.title, description: hero.description, image: hero.image, background: hero.background },
-    services: { columns: services.columns, gap: services.gap, items: services.items.map((item) => ({ id: item.id, title: item.title, description: item.description, href: item.href, icon: item.icon, color: item.color, width: item.width, background: item.background, textColor: item.textColor, fontSize: item.fontSize })) },
-    digital: { columns: digital.columns, gap: digital.gap, items: digital.items.map((item) => ({ id: item.id, title: item.title, href: item.href, image: item.image, alt: item.alt, width: item.width, background: item.background, textColor: item.textColor, fontSize: item.fontSize })) },
+    hero: { eyebrow: hero.eyebrow, title: hero.title, description: hero.description, image: hero.image, background: hero.background, backgroundEnd: hero.backgroundEnd || '', gradientAngle: hero.gradientAngle === undefined ? 135 : hero.gradientAngle, backgroundOpacity: hero.backgroundOpacity === undefined ? 100 : hero.backgroundOpacity, glow: hero.glow === undefined ? 0 : hero.glow, glowColor: hero.glowColor || '' },
+    services: { columns: services.columns, gap: services.gap, ...cleanSurface(services), items: services.items.map((item) => ({ id: item.id, title: item.title, description: item.description, href: item.href, icon: item.icon, color: item.color, ...cleanStyle(item) })) },
+    digital: { columns: digital.columns, gap: digital.gap, ...cleanSurface(digital), items: digital.items.map((item) => ({ id: item.id, title: item.title, href: item.href, image: item.image, alt: item.alt, ...cleanStyle(item) })) },
+    custom: { title: custom.title || '', columns: custom.columns, gap: custom.gap, ...cleanSurface(custom), items: custom.items.map((item) => ({ id: item.id, type: item.type, title: item.title || '', text: item.text || '', href: item.href || '', image: item.image || '', alt: item.alt || '', ...cleanStyle(item) })) },
     contact: { phone: contact.phone, whatsapp: contact.whatsapp, email: contact.email, address: contact.address, weekday: contact.weekday, weekdayHours: contact.weekdayHours, sunday: contact.sunday, sundayStatus: contact.sundayStatus }
   };
 }

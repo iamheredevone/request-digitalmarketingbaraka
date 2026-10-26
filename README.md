@@ -35,14 +35,14 @@ Editor berada di `admin-site-editor.html` dan dibuka dari Admin Galeri setelah l
 
 - Halaman publik membaca `site-content-defaults.json` sebagai nilai awal lalu mengambil versi terbit dari `?resource=site-editor`. Jika API belum tersedia, halaman tetap menampilkan HTML bawaan.
 - Worker menyimpan `site-editor:draft` terpisah dari `site-editor:published`; menyimpan versi dan snapshot di `site-editor:versions` serta `site-editor:version:<uuid>` (maksimal 20 versi). Publik hanya menerima versi terbit. Data konten dibatasi 256 KB dan divalidasi dengan schema versi 1.
-- Pratinjau memakai halaman asli dalam iframe. Editor mendukung ubah teks, URL/path gambar, link, warna, ukuran teks, lebar kartu, kolom/jarak grid, urutan section/kartu, tambah/duplikat/hapus kartu, undo/redo, ukuran desktop/tablet/mobile, simpan draft, publish, dan rollback.
-- Bagian Hero, Layanan, Materi Digital, dan Kontak dapat diedit. Urutan Galeri dapat dipindah; isi carousel tetap memakai Admin Galeri. Header/footer dan formulir mandiri belum menjadi komponen editor.
+- Pratinjau memakai halaman asli dalam iframe. Editor mendukung klik layer di kanvas, tambah elemen teks/card custom, ubah teks/gambar/link, palet warna, gradient, transparansi, glow, border, radius, alignment, ukuran kartu, kolom/jarak grid, urutan layer, undo/redo, ukuran desktop/tablet/mobile, simpan draft, publish, dan rollback.
+- Section Hero, Layanan, Konten Tambahan, Materi Digital, dan Kontak dapat diedit. Urutan Galeri dapat dipindah; isi carousel tetap memakai Admin Galeri. Header/footer dan formulir mandiri belum menjadi komponen editor.
 - Path gambar dapat memakai `assets/...` atau URL HTTPS. Upload gambar baru tetap dilakukan melalui Admin Galeri dan URL/path hasil upload bisa ditempel ke editor; file upload langsung dari editor belum tersedia.
 - Tidak ada deployment build atau commit otomatis ke GitHub. Publish menyimpan data runtime di KV; GitHub Pages tetap menampilkan HTML terakhir jika Worker/API gagal.
 
 ### Konfigurasi/deploy
 
-1. Di Cloudflare Worker yang sudah digunakan, deploy kode terbaru `worker-cloudflare-gallery.js`. Worker tetap memakai binding `GALLERY_KV` dan secret yang ada; editor tidak meminta binding D1/R2 baru.
+1. Di Cloudflare Worker yang sudah digunakan, deploy kode terbaru `worker-cloudflare-gallery.js` dari repo. Versi ini menambah validasi untuk elemen teks/card custom dan pengaturan gradient/glow. Worker tetap memakai binding `GALLERY_KV` dan secret yang ada; editor tidak meminta binding D1/R2 baru.
 2. Pastikan `ALLOWED_ORIGINS` berisi origin halaman GitHub Pages, misalnya `https://iamheredevone.github.io` (tambahkan origin custom domain jika digunakan). Worker menolak akses admin jika daftar ini kosong atau origin tidak cocok. Origin bukan pengganti session/password.
 3. Pastikan `GALLERY_ADMIN_ID`, `GALLERY_ADMIN_PASSWORD`, dan `GALLERY_KV` tetap terkonfigurasi. Secret Google/Discord tetap hanya berada pada Worker.
 4. Push file frontend ke GitHub Pages secara manual setelah meninjau perubahan. Setelah Worker dan frontend aktif, buka Admin Galeri, login, lalu pilih **Buka Editor Website**.

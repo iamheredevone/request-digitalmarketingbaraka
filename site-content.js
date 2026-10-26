@@ -1,6 +1,6 @@
 (() => {
   const API_URL = "https://digitalmarketing.iamhere-devone.workers.dev/?resource=site-editor";
-  const DEFAULT_URL = "site-content-defaults.json";
+  const DEFAULT_URL = "site-content-defaults.json?v=visual-1";
   const editorPreview = new URLSearchParams(location.search).has("editorPreview");
   const SERVICE_TEMPLATE = document.querySelector('[data-editor-section="services"] > .service-card')?.cloneNode(true);
   const DIGITAL_TEMPLATE = document.querySelector('[data-editor-section="digital"] .digital-grid > .digital-card')?.cloneNode(true);
@@ -20,10 +20,38 @@
     const lower = value.toLowerCase();
     return !lower.startsWith("javascript:") && (lower.startsWith("https://") || lower.startsWith("http://") || lower.startsWith("mailto:") || lower.startsWith("tel:") || (value.startsWith("/") && !value.startsWith("//")) || value.startsWith("./") || value.startsWith("#"));
   }
+  function rgba(hex, alpha) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex || "")) return "transparent";
+    const value = hex.slice(1);
+    const opacity = Math.max(0, Math.min(Number(alpha) || 0, 100)) / 100;
+    return `rgba(${parseInt(value.slice(0, 2), 16)}, ${parseInt(value.slice(2, 4), 16)}, ${parseInt(value.slice(4, 6), 16)}, ${opacity})`;
+  }
+
+  function applySurface(element, item) {
+    const start = /^#[0-9a-f]{6}$/i.test(item.background || "") ? item.background : "";
+    const end = /^#[0-9a-f]{6}$/i.test(item.backgroundEnd || "") ? item.backgroundEnd : "";
+    const opacity = Number.isInteger(item.backgroundOpacity) ? item.backgroundOpacity : 100;
+    element.style.backgroundColor = start && !end ? rgba(start, opacity) : "";
+    element.style.backgroundImage = start && end
+      ? `linear-gradient(${Number.isInteger(item.gradientAngle) ? item.gradientAngle : 135}deg, ${rgba(start, opacity)}, ${rgba(end, opacity)})`
+      : "";
+    const glow = Math.max(0, Math.min(Number(item.glow) || 0, 48));
+    const glowColor = /^#[0-9a-f]{6}$/i.test(item.glowColor || "") ? item.glowColor : (start || "#0b6c83");
+    element.style.boxShadow = glow ? `0 0 ${glow * 2}px ${rgba(glowColor, 38)}` : "";
+  }
+
   function applyItemStyle(element, item, columns) {
-    element.style.backgroundColor = /^#[0-9a-f]{6}$/i.test(item.background || "") ? item.background : "";
+    applySurface(element, item);
     element.style.color = /^#[0-9a-f]{6}$/i.test(item.textColor || "") ? item.textColor : "";
-    element.style.fontSize = Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 32 ? `${item.fontSize}px` : "";
+    if (/^#[0-9a-f]{6}$/i.test(item.textColor || "")) element.style.setProperty("--muted", item.textColor);
+    const fontSize = Number.isInteger(item.fontSize) && item.fontSize >= 12 && item.fontSize <= 48 ? `${item.fontSize}px` : "";
+    element.style.fontSize = fontSize;
+    element.querySelectorAll(".service-body h3,.service-body p,.digital-name,.custom-block h3,.custom-block p").forEach((node) => { node.style.fontSize = fontSize; });
+    element.style.textAlign = ["left", "center", "right"].includes(item.textAlign) ? item.textAlign : "";
+    element.style.borderRadius = Number.isInteger(item.radius) ? `${item.radius}px` : "";
+    element.style.border = Number(item.borderWidth) > 0 && /^#[0-9a-f]{6}$/i.test(item.borderColor || "")
+      ? `${item.borderWidth}px solid ${item.borderColor}`
+      : "";
     const columnCount = Number(columns || (element.parentElement && element.parentElement.dataset.editorColumns) || 1);
     element.style.gridColumn = `span ${Math.max(1, Math.min(Number(item.width) || 1, columnCount))}`;
   }
@@ -38,6 +66,7 @@
     section.dataset.editorColumns = String(cols);
     section.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     section.style.gap = `${model.services.gap}px`;
+    applySurface(section, model.services);
     section.replaceChildren();
     model.services.items.forEach((item, index) => {
       const card = template.cloneNode(true);
@@ -68,6 +97,7 @@
     grid.dataset.editorColumns = String(cols);
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     grid.style.gap = `${model.digital.gap}px`;
+    applySurface(section, model.digital);
     grid.replaceChildren();
     model.digital.items.forEach((item) => {
       const card = template.cloneNode(true);
@@ -86,6 +116,56 @@
     });
   }
 
+  function renderCustom(model) {
+    const section = document.querySelector('[data-editor-section="custom"]');
+    const grid = section && section.querySelector(".custom-content-grid");
+    if (!section || !grid) return;
+    const content = model.custom || { title: "", columns: 3, gap: 20, items: [] };
+    const items = Array.isArray(content.items) ? content.items : [];
+    section.hidden = items.length === 0;
+    applySurface(section, content);
+    const heading = section.querySelector(".custom-content-heading");
+    if (heading) {
+      heading.textContent = content.title || "";
+      heading.hidden = !content.title;
+    }
+    const cols = window.matchMedia("(max-width: 760px)").matches ? 1 : (content.columns || 3);
+    grid.dataset.editorColumns = String(cols);
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    grid.style.gap = `${content.gap || 0}px`;
+    grid.replaceChildren();
+    items.forEach((item) => {
+      const isCard = item.type === "card";
+      const element = item.href && validHref(item.href) ? document.createElement("a") : document.createElement("article");
+      element.className = `custom-block ${isCard ? "custom-card" : "custom-text"}`;
+      element.dataset.editorId = item.id;
+      if (element.tagName === "A") {
+        element.href = item.href;
+        element.target = "_blank";
+        element.rel = "noopener noreferrer";
+      }
+      if (isCard && validImage(item.image)) {
+        const image = document.createElement("img");
+        image.className = "custom-block-image";
+        image.src = item.image;
+        image.alt = item.alt || "";
+        element.append(image);
+      }
+      if (item.title) {
+        const title = document.createElement("h3");
+        title.textContent = item.title;
+        element.append(title);
+      }
+      if (item.text) {
+        const text = document.createElement("p");
+        text.textContent = item.text;
+        element.append(text);
+      }
+      applyItemStyle(element, item, cols);
+      grid.append(element);
+    });
+  }
+
   function applyContent(model) {
     if (!model || model.schemaVersion !== 1) return;
     document.documentElement.style.setProperty("--teal", model.theme.primary);
@@ -99,10 +179,11 @@
     if (title) { title.textContent = model.hero.title; title.style.whiteSpace = "pre-line"; }
     if (description) description.textContent = model.hero.description;
     if (heroImage && validImage(model.hero.image)) heroImage.src = model.hero.image;
-    if (hero) hero.style.backgroundColor = model.hero.background;
+    if (hero) applySurface(hero, { background: model.hero.background, backgroundEnd: model.hero.backgroundEnd, gradientAngle: model.hero.gradientAngle, backgroundOpacity: model.hero.backgroundOpacity, glow: model.hero.glow, glowColor: model.hero.glowColor });
 
     renderServices(model);
     renderDigital(model);
+    renderCustom(model);
 
     const contact = model.contact;
     const phone = document.querySelector('[data-editor-contact="phone"]');
@@ -133,7 +214,19 @@
       ]);
       const defaults = defaultResponse.ok ? await defaultResponse.json() : null;
       const published = publishedResponse.ok ? await publishedResponse.json() : null;
-      applyContent(published && published.content ? published.content : defaults);
+      const source = published && published.content ? published.content : {};
+      const model = defaults ? {
+        ...defaults,
+        ...source,
+        sections: source.sections || defaults.sections,
+        theme: { ...defaults.theme, ...source.theme },
+        hero: { ...defaults.hero, ...source.hero },
+        services: { ...defaults.services, ...source.services },
+        digital: { ...defaults.digital, ...source.digital },
+        custom: { ...defaults.custom, ...source.custom },
+        contact: { ...defaults.contact, ...source.contact }
+      } : source;
+      applyContent(model);
     } catch (error) {
       console.warn("Konten terbit gagal dimuat; HTML bawaan digunakan.", error);
     }
