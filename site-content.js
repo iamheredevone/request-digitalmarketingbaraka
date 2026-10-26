@@ -47,6 +47,22 @@
       ".custom-block img,.custom-block-image,.digital-thumb{max-width:100%;height:auto}";
     document.head.append(st);
   })();
+  (function injectCompactCss() {
+    if (document.getElementById("site-content-compact")) return;
+    const st = document.createElement("style");
+    st.id = "site-content-compact";
+    st.textContent =
+      "@media (min-width:761px) and (max-width:1200px){" +
+      ".services{padding-left:clamp(10px,2vw,24px)!important;padding-right:clamp(10px,2vw,24px)!important}" +
+      ".services .service-card{padding:16px!important;gap:12px!important;min-height:0!important;border-radius:20px!important}" +
+      ".services .service-icon{width:46px!important;height:46px!important;border-radius:14px!important;font-size:19px!important}" +
+      ".services .service-number{top:12px!important;right:14px!important;font-size:12px!important}" +
+      ".services .service-body p{padding-right:0!important;margin-bottom:34px}" +
+      ".services .service-arrow{width:32px!important;height:32px!important;right:12px!important;bottom:12px!important;font-size:12px!important}}" +
+      "@media (min-width:761px) and (max-width:1024px){" +
+      ".services .service-body h3{font-size:13px!important}.services .service-body p{font-size:11px!important}}";
+    document.head.append(st);
+  })();
   function tint(hex, strength) {
     const n = parseInt(hex.slice(1), 16);
     const mix = (c) => Math.round(255 - (255 - c) * strength);
@@ -67,7 +83,14 @@
   }
   function layoutGrid(container) {
     if (!container || !container.dataset.desiredCols) return;
-    const cols = effectiveCols(container, container.dataset.desiredCols, Number(container.dataset.minCard) || 200);
+    let cols;
+    if (container.dataset.singleRow) {
+      // Layanan: desktop & tablet selalu satu baris; HP (<=760px) tersusun 1 kolom
+      if (window.matchMedia("(max-width: 760px)").matches) cols = 1;
+      else cols = Math.max(1, Math.min(12, Array.from(container.children).reduce((sum, child) => sum + Math.max(1, Math.min(Number(child.dataset.editorWidth) || 1, 5)), 0)));
+    } else {
+      cols = effectiveCols(container, container.dataset.desiredCols, Number(container.dataset.minCard) || 200);
+    }
     container.dataset.editorColumns = String(cols);
     container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     Array.from(container.children).forEach((child) => {
@@ -159,6 +182,7 @@
       applyItemStyle(card, item, cols);
       section.append(card);
     });
+    section.dataset.singleRow = "1";
     watchGrid(section, model.services.columns, MIN_CARD.services);
   }
 
