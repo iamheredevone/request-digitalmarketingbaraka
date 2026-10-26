@@ -138,9 +138,8 @@
       body.querySelector("p").textContent = item.description;
       icon.className = ICONS[item.icon] || ICONS.file;
       const accent = HEX.test(item.accent || "") ? item.accent : "";
-      const iconTint = HEX.test(item.iconColor || "") ? item.iconColor : accent;
-      icon.style.color = iconTint;
-      if (box) box.style.background = HEX.test(item.iconBg || "") ? item.iconBg : (iconTint ? rgba(iconTint, 15) : "");
+      icon.style.color = HEX.test(item.iconColor || "") ? item.iconColor : "";
+      if (box) box.style.background = HEX.test(item.iconBg || "") ? item.iconBg : (accent || "");
       const num = card.querySelector(".service-number");
       const arrow = card.querySelector(".service-arrow");
       if (num) num.style.color = accent;
