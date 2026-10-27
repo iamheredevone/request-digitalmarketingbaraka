@@ -74,7 +74,7 @@
     return w > 0 ? w : 0;
   }
   function effectiveCols(container, desired, min) {
-    const want = Math.max(1, Math.min(Number(desired) || 1, 5));
+    const want = Math.max(1, Math.min(Number(desired) || 1, 12));
     const w = innerWidth(container);
     if (!w) return want;
     const gap = parseFloat(container.style.gap) || 0;
@@ -83,20 +83,41 @@
   }
   function layoutGrid(container) {
     if (!container || !container.dataset.desiredCols) return;
+    const desired = Math.max(1, Math.min(Number(container.dataset.desiredCols) || 1, 12));
+    const positioned = container.dataset.positioned === "1";
+    const kids = Array.from(container.children);
+    const mobile = window.matchMedia("(max-width: 760px)").matches;
     let cols;
-    if (container.dataset.singleRow) {
-      // Layanan: desktop & tablet selalu satu baris; HP (<=760px) tersusun 1 kolom
-      if (window.matchMedia("(max-width: 760px)").matches) cols = 1;
-      else cols = Math.max(1, Math.min(12, Array.from(container.children).reduce((sum, child) => sum + Math.max(1, Math.min(Number(child.dataset.editorWidth) || 1, 5)), 0)));
+    if (container.dataset.noShrink) {
+      // Layanan: desktop & tablet tidak turun baris; HP (<=760px) tersusun 1 kolom
+      if (mobile) cols = 1;
+      else if (positioned) cols = desired;
+      else cols = Math.max(1, Math.min(12, kids.reduce((sum, child) => sum + Math.max(1, Math.min(Number(child.dataset.editorWidth) || 1, 12)), 0)));
     } else {
-      cols = effectiveCols(container, container.dataset.desiredCols, Number(container.dataset.minCard) || 200);
+      cols = effectiveCols(container, desired, Number(container.dataset.minCard) || 200);
     }
+    // Posisi grid (kolom/baris) hanya dipakai jika kolom yang tersedia cukup; selain itu mengalir otomatis
+    const useExplicit = positioned && cols >= desired;
     container.dataset.editorColumns = String(cols);
+    container.dataset.explicitLayout = useExplicit ? "1" : "";
     container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
-    Array.from(container.children).forEach((child) => {
-      const w = Number(child.dataset.editorWidth) || 1;
-      child.style.gridColumn = `span ${Math.max(1, Math.min(w, cols))}`;
+    kids.forEach((child) => {
+      const w = Math.max(1, Math.min(Number(child.dataset.editorWidth) || 1, cols));
+      const col = Number(child.dataset.editorCol) || 0;
+      const row = Number(child.dataset.editorRow) || 0;
+      const span = Math.max(1, Number(child.dataset.editorRowSpan) || 1);
+      child.style.gridColumn = useExplicit && col > 0 ? `${Math.min(col, cols - w + 1)} / span ${w}` : `span ${w}`;
+      child.style.gridRow = useExplicit && row > 0 && col > 0 ? `${row} / span ${span}` : (useExplicit && span > 1 ? `span ${span}` : "");
     });
+    const idx = (el) => Number(el.dataset.editorIndex) || 0;
+    const key = (el) => (Number(el.dataset.editorRow) > 0 && Number(el.dataset.editorCol) > 0) ? Number(el.dataset.editorRow) * 1000 + Number(el.dataset.editorCol) : 1e6 + idx(el);
+    const ordered = kids.slice().sort(positioned && !useExplicit ? (x, y) => key(x) - key(y) : (x, y) => idx(x) - idx(y));
+    if (ordered.some((el, i) => el !== kids[i])) ordered.forEach((el) => container.append(el));
+  }
+  function markLayout(container, items, noShrink) {
+    if (items.some((item) => Number(item.col) > 0 && Number(item.row) > 0)) container.dataset.positioned = "1";
+    else delete container.dataset.positioned;
+    if (noShrink) container.dataset.noShrink = "1";
   }
   const gridObserver = "ResizeObserver" in window ? new ResizeObserver((entries) => entries.forEach((e) => layoutGrid(e.target))) : null;
   function watchGrid(container, desired, min) {
@@ -134,7 +155,10 @@
     element.style.border = Number(item.borderWidth) > 0 && HEX.test(item.borderColor || "")
       ? `${item.borderWidth}px solid ${item.borderColor}`
       : "";
-    element.dataset.editorWidth = String(Math.max(1, Math.min(Number(item.width) || 1, 5)));
+    element.dataset.editorWidth = String(Math.max(1, Math.min(Number(item.width) || 1, 12)));
+    element.dataset.editorCol = String(Math.max(0, Math.min(Number(item.col) || 0, 12)));
+    element.dataset.editorRow = String(Math.max(0, Math.min(Number(item.row) || 0, 60)));
+    element.dataset.editorRowSpan = String(Math.max(1, Math.min(Number(item.rowSpan) || 1, 8)));
     const columnCount = Number(columns || (element.parentElement && element.parentElement.dataset.editorColumns) || 1);
     element.style.gridColumn = `span ${Math.max(1, Math.min(Number(item.width) || 1, columnCount))}`;
   }
@@ -158,6 +182,7 @@
       const icon = card.querySelector(".service-icon i");
       card.className = `service-card service-${item.color}`;
       card.dataset.editorId = item.id;
+      card.dataset.editorIndex = String(index);
       card.href = validHref(item.href) ? item.href : "#";
       card.target = "_blank";
       card.rel = "noopener noreferrer";
@@ -182,7 +207,7 @@
       applyItemStyle(card, item, cols);
       section.append(card);
     });
-    section.dataset.singleRow = "1";
+    markLayout(section, model.services.items, true);
     watchGrid(section, model.services.columns, MIN_CARD.services);
   }
 
@@ -199,11 +224,12 @@
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     applySurface(section, model.digital);
     grid.replaceChildren();
-    model.digital.items.forEach((item) => {
+    model.digital.items.forEach((item, index) => {
       const card = template.cloneNode(true);
       const image = card.querySelector(".digital-thumb");
       const title = card.querySelector(".digital-name");
       card.dataset.editorId = item.id;
+      card.dataset.editorIndex = String(index);
       card.href = validHref(item.href) ? item.href : "#";
       card.target = "_blank";
       card.rel = "noopener noreferrer";
@@ -214,6 +240,7 @@
       applyItemStyle(card, item, cols);
       grid.append(card);
     });
+    markLayout(grid, model.digital.items);
     watchGrid(grid, model.digital.columns, MIN_CARD.digital);
   }
 
@@ -235,11 +262,12 @@
     grid.dataset.editorColumns = String(cols);
     grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     grid.replaceChildren();
-    items.forEach((item) => {
+    items.forEach((item, index) => {
       const isCard = item.type === "card";
       const element = item.href && validHref(item.href) ? document.createElement("a") : document.createElement("article");
       element.className = `custom-block ${isCard ? "custom-card" : "custom-text"}`;
       element.dataset.editorId = item.id;
+      element.dataset.editorIndex = String(index);
       if (element.tagName === "A") {
         element.href = item.href;
         element.target = "_blank";
@@ -265,6 +293,7 @@
       applyItemStyle(element, item, cols);
       grid.append(element);
     });
+    markLayout(grid, items);
     watchGrid(grid, content.columns || 3, MIN_CARD.custom);
   }
 
