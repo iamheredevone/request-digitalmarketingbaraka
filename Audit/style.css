@@ -12,12 +12,14 @@ body {
    [LAYOUT] Container + Header
 ========================== */
 .container {
-  max-width: 450px;
+  width: 100%;
+  max-width: 920px;
+  box-sizing: border-box;
   background: white;
   padding: 25px;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  margin: auto;
+  margin: 24px auto 0;
 }
 .header-section { text-align: center; margin-bottom: 20px; }
 h2 {
@@ -29,6 +31,52 @@ h2 {
 }
 .logo-container { width: 100%; text-align: center; margin-top: 10px; }
 .logo { max-width: 250px; height: auto; display: block; margin: 0 auto; }
+
+.audit-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 20px;
+  align-items: start;
+}
+.audit-field { min-width: 0; }
+.audit-field label { margin-top: 8px; }
+.audit-fields-grid input,
+.audit-fields-grid select,
+.audit-evidence-grid input { min-width: 0; }
+#questions-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+  margin-top: 8px;
+}
+.q-box { min-width: 0; }
+.audit-evidence-grid {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  justify-items: center;
+  align-items: center;
+  margin: 18px auto 0;
+}
+.audit-evidence-grid .audit-field,
+.audit-evidence-grid .example-wrap { width: 100%; min-width: 0; text-align: center; }
+.audit-evidence-grid .audit-field label { text-align: center; }
+.audit-evidence-grid input[type="file"] { display: block; width: 100%; margin: 0 auto; }
+.audit-evidence-grid .example-wrap { margin-top: 0; }
+.audit-evidence-grid .example-title { text-align: center; }
+.example-photo { width: 100%; max-width: 640px; max-height: 280px; margin: 0 auto; object-fit: contain; }
+
+@media (max-width: 600px) {
+  body { padding: 0 12px; }
+  .container { padding: 20px 16px; }
+  h2 { font-size: 20px; }
+}
+
+@media (max-width: 700px) {
+  .audit-fields-grid,
+  .audit-evidence-grid,
+  #questions-container { grid-template-columns: minmax(0, 1fr); }
+}
 
 /* =========================
    [FORM] Label + Input + Select

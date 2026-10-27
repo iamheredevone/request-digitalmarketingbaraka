@@ -3,22 +3,37 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Permintaan Desain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="../shared/site-chrome.css?v=8">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=2">
 </head>
 
-<body>
+<body class="portal-page">
+  <header class="portal-header">
+    <a class="portal-brand" href="../index.html#beranda" target="_blank" rel="noopener noreferrer" aria-label="Baraka Express - Beranda">
+      <img src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" alt="Logo Baraka Express">
+    </a>
+    <nav class="portal-nav" id="portalNav" aria-label="Navigasi utama">
+      <a href="../index.html#beranda" target="_blank" rel="noopener noreferrer">Beranda</a>
+      <a href="../index.html#layanan" target="_blank" rel="noopener noreferrer">Layanan</a>
+      <a href="../index.html#materi" target="_blank" rel="noopener noreferrer">Materi Digital</a>
+      <a href="../index.html#galeri" target="_blank" rel="noopener noreferrer">Galeri</a>
+      <a href="../index.html#kontak" target="_blank" rel="noopener noreferrer">Kontak</a>
+    </nav>
+    <a class="portal-contact" href="https://wa.me/6282211958695" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Hubungi Kami</a>
+    <a class="portal-login" href="../admin-gallery.html" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-user" aria-hidden="true"></i> Login</a>
+    <button class="portal-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false" aria-controls="portalNav"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+  </header>
 
   <!-- ===================== FORM UTAMA ===================== -->
   <div class="card">
-    <img
-      src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png"
-      class="logo"
-      alt="Logo"
-    />
     <h2>Permintaan Desain</h2>
 
     <form id="formDesain" onsubmit="showConfirmModal(event); return false;">
@@ -280,7 +295,14 @@
 
   <div id="msg"></div>
 
+  <footer class="portal-footer">
+    <a class="portal-footer-brand" href="../index.html#beranda" target="_blank" rel="noopener noreferrer" aria-label="Baraka Express - Beranda"><img src="https://res.cloudinary.com/dj0kb9tg7/image/upload/v1761968452/Logo_Final_Baraka_Polos_1_vtwwmn.png" alt="Baraka Express"></a>
+    <div class="portal-copyright"><strong>© 2026 Digital Marketing</strong><span>Seluruh hak cipta dilindungi.</span></div>
+    <span class="portal-crafted">Crafted by <strong><a href="https://www.instagram.com/iamnotafra1d" target="_blank" rel="noopener noreferrer">iamnotafra1d</a></strong></span>
+  </footer>
+
   <script src="../shared/wilayah.js"></script>
   <script src="script.js"></script>
+  <script src="../shared/site-chrome.js?v=1"></script>
 </body>
 </html>
