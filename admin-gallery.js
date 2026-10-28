@@ -1,4 +1,5 @@
 const API_URL = "https://digitalmarketing.iamhere-devone.workers.dev/?resource=gallery";
+const DISCORD_TEST_URL = "https://digitalmarketing.iamhere-devone.workers.dev/?resource=discord-test";
 const MAX_IMAGE_SIZE = 500 * 1024 * 1024;
 const rows = document.getElementById("rows");
 const status = document.getElementById("status");
@@ -225,6 +226,28 @@ async function saveSlides() {
   }
 }
 
+async function sendDiscordTest() {
+  const button = document.getElementById("discordTestButton");
+  button.disabled = true;
+  setStatus("Mengirim notifikasi TEST ke Discord...");
+  try {
+    const result = await requestJson(DISCORD_TEST_URL, {
+      method: "POST",
+      headers: sessionHeaders(),
+      body: JSON.stringify({ form: document.getElementById("discordTestForm").value })
+    });
+    setStatus(`Notifikasi TEST untuk ${result.form} berhasil dikirim.`);
+  } catch (error) {
+    setStatus(`Gagal mengirim tes: ${error.message}`);
+    if (error.message.includes("Sesi login berakhir")) {
+      session = "";
+      setEditorView(false);
+    }
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function logout() {
   session = "";
   slides = [];
@@ -252,4 +275,5 @@ document.getElementById("add").addEventListener("click", () => {
   drawSlides();
 });
 document.getElementById("save").addEventListener("click", saveSlides);
+document.getElementById("discordTestButton").addEventListener("click", sendDiscordTest);
 document.getElementById("logout").addEventListener("click", logout);

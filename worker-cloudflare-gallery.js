@@ -191,96 +191,96 @@ const AUDIT_POIN = [
 function dFields(list) {
   return list
     .filter((f) => str(f[1], 1000))
-    .map((f) => ({ name: f[0], value: str(f[1], 1000), inline: !!f[2] }));
+    .map((f) => ({ name: `### ${f[0]}`, value: str(f[1], 1000), inline: !!f[2] }));
 }
-function wilayahTeks(x) {
-  return [x.kelurahan, x.kecamatan, x.kabupatenKota, x.provinsi].filter(Boolean).join(', ');
+function titleCaseId(value, max = 1000) {
+  return str(value, max)
+    .toLocaleLowerCase('id-ID')
+    .replace(/(^|[\s,./-])([a-z])/g, (match, separator, letter) => separator + letter.toLocaleUpperCase('id-ID'))
+    .replace(/\b(Jl|Jln|Rt|Rw|Dki|Top|Port)\b/gi, (word) => ({ jl: 'Jl', jln: 'Jln', rt: 'RT', rw: 'RW', dki: 'DKI', top: 'TOP', port: 'PORT' }[word.toLowerCase()] || word));
+}
+function formatTopName(type, name) {
+  return [titleCaseId(type, 50), titleCaseId(name, 150)].filter(Boolean).join(' ');
+}
+function formatAddress(parts, postalCode) {
+  const address = titleCaseId(parts.map((part) => str(part, 300)).filter(Boolean).join(', '), 1000);
+  return [address, str(postalCode, 20)].filter(Boolean).join(' ');
 }
 const DISCORD_EMBEDS = {
   cabang: (x) => {
-  const wilayah = [
-    x.kelurahanNama,
-    x.kecamatanNama,
-    x.kabupatenNama,
-    x.provinsiNama
-  ].filter(Boolean).join(', ');
+    const v = (value, max = 1000) => str(value, max) || '-';
+    const jam = getJamOperasional(x.tipeTop);
+    return {
+      title: '📋 Pendaftaran Agen/Cabang Baru',
+      color: 2003199,
+      fields: dFields([
+        ['📍 PORT Area', v(x.tipe), false],
+        ['🏷️ Jenis TOP', v(x.tipeTop), false],
+        ...(jam ? [['⏰ Jam Operasional', jam, false]] : []),
+        ['👤 Kepemilikan', v(x.kepemilikan), false],
+        ['📅 Tanggal Pembukaan TOP', v(x.tanggalPembukaan), false],
+        ['🏢 Nama TOP', formatTopName(x.tipeTop, x.namaAgen) || '-', false],
+        ['🏠 Alamat', formatAddress([
+          x.alamat,
+          x.kelurahanNama,
+          x.kecamatanNama,
+          x.kabupatenNama,
+          x.provinsiNama
+        ], x.kodePos) || '-', false],
+        ['📞 No. Telepon', v(x.telepon), false],
+        ['🗺️ Link Google Maps', v(x.gmaps, 500), false]
+      ]),
+      timestamp: new Date().toISOString()
+    };
+  },
 
-  const v = (s, max = 1000) => str(s, max) || '-';
-  const jam = getJamOperasional(x.tipeTop);
-
-  const fields = [
-    { name: 'Port Area', value: v(x.tipe), inline: true },
-    { name: 'Tipe TOP', value: v(x.tipeTop), inline: true },
-    ...(jam ? [{
-      name: 'Jam Operasional',
-      value: jam,
-      inline: true
-    }] : []),
-    { name: 'Kepemilikan', value: v(x.kepemilikan), inline: true },
-    {
-      name: 'Tanggal Pembukaan TOP',
-      value: v(x.tanggalPembukaan),
-      inline: true
-    },
-    {
-      name: 'Nama Agen/Cabang',
-      value: v(x.namaAgen, 150),
-      inline: false
-    },
-    {
-      name: 'Alamat',
-      value: v(str(x.alamat, 500) + '\n' + wilayah),
-      inline: false
-    },
-    { name: 'Kode Pos', value: v(x.kodePos), inline: true },
-    { name: 'No. Telepon', value: v(x.telepon), inline: true },
-    {
-      name: 'Link Google Maps',
-      value: v(x.gmaps, 500),
-      inline: false
-    }
-  ];
-  return {
-    title: '📋 Pendaftaran Agen/Cabang Baru',
-    color: 2003199,
-    fields,
-    timestamp: new Date().toISOString()
-  };
-},
-
-  banner: (x) => ({
-    title: '🎨 Permintaan Desain Baru',
-    color: 15105570,
-    fields: dFields([
-      ['Nama Agen/Cabang', [x.jenisAgen, x.namaAgen].filter(Boolean).join(' '), false],
-      ['Kode TOP', x.kodeTop, true],
-      ['PORT Area', x.portArea, true],
-      ['Pemilik', x.statusAgen, true],
-      ['No. Telepon', x.noTelp, true],
-      ['Alamat', [x.namaJalan, wilayahTeks(x), x.kodePos].filter(Boolean).join('\n'), false],
-      ['Jenis Permintaan', jenisPermintaanBanner(x), false],
-      ['Ukuran Spanduk', x.ukuranBanner, true],
-      ['Deskripsi', x.deskripsi, false]
-    ]),
-    timestamp: new Date().toISOString()
-  }),
+  banner: (x) => {
+    return {
+      title: '🎨 Permintaan Desain Baru',
+      color: 15105570,
+      fields: dFields([
+        ['🏢 Nama TOP', formatTopName(x.jenisAgen, x.namaAgen), false],
+        ['🔢 Kode TOP', x.kodeTop, true],
+        ['📍 PORT Area', x.portArea, true],
+        ['👤 Pemilik', x.statusAgen, true],
+        ['🏠 Alamat', formatAddress([
+          x.namaJalan,
+          x.kelurahan,
+          x.kecamatan,
+          x.kabupatenKota,
+          x.provinsi
+        ], x.kodePos), false],
+        ['📞 No. Telepon', x.noTelp, false],
+        ['🎨 Jenis Permintaan', jenisPermintaanBanner(x), false],
+        ['📐 Ukuran Spanduk', x.ukuranBanner, false],
+        ['📝 Deskripsi', x.deskripsi, false]
+      ]),
+      timestamp: new Date().toISOString()
+    };
+  },
 
   gmaps: (x) => ({
     title: '🗺️ Request Google Maps',
     color: 3447003,
     fields: dFields([
-      ['Jenis Permintaan', x.jenisPermintaan, false],
-      ['Nama Agen', [x.jenisAgen, x.namaAgen].filter(Boolean).join(' '), false],
-      ['Kode TOP', x.kodeTop, true],
-      ['Port Area', x.portArea, true],
-      ['Kepemilikan', x.kepemilikan, true],
-      ['No. Telepon', x.noTelp, true],
-      ['Alamat Baru', [x.namaJalan, wilayahTeks(x), x.kodePos].filter(Boolean).join('\n'), false],
-      ['Link Maps Baru', x.mapsBaru, false],
-      ['Link Maps Lama / Saat Ini', x.mapsLama || x.mapsSaatIni, false],
-      ['Alamat Lama', x.alamatLama, false],
-      ['Jam Operasional', x.jamOperasional, false],
-      ['Keterangan', x.deskripsi, false]
+      ['🔄 Jenis Permintaan', x.jenisPermintaan, false],
+      ['🏢 Nama TOP', formatTopName(x.jenisAgen, x.namaAgen), false],
+      ['🔢 Kode TOP', x.kodeTop, true],
+      ['📍 PORT Area', x.portArea, true],
+      ['👤 Kepemilikan', x.kepemilikan, true],
+      ['🏠 Alamat Baru', formatAddress([
+        x.namaJalan,
+        x.kelurahan,
+        x.kecamatan,
+        x.kabupatenKota,
+        x.provinsi
+      ], x.kodePos), false],
+      ['📞 No. Telepon', x.noTelp, false],
+      ['🗺️ Link Maps Baru', x.mapsBaru, false],
+      ['🔗 Link Maps Lama / Saat Ini', x.mapsLama || x.mapsSaatIni, false],
+      ['🏠 Alamat Lama', titleCaseId(x.alamatLama), false],
+      ['⏰ Jam Operasional', x.jamOperasional, false],
+      ['📝 Keterangan', x.deskripsi, false]
     ]),
     timestamp: new Date().toISOString()
   }),
@@ -294,13 +294,13 @@ const DISCORD_EMBEDS = {
       title: '📝 Laporan Audit Branding',
       color: tidak.length ? 15158332 : 3066993,
       fields: dFields([
-        ['Kode TOP', x.kodeTop, true],
-        ['Port', x.port, true],
-        ['Auditor', x.auditor, true],
-        ['Tanggal Audit', x.tanggalAudit, true],
-        ['Hasil', (11 - tidak.length) + ' YA, ' + tidak.length + ' TIDAK', true],
-        ['Poin TIDAK', tidak.length ? tidak.join('\n') : 'Semua poin YA ✅', false],
-        ['Foto Bukti', extra && extra.fotoUrl, false]
+        ['🔢 Kode TOP', x.kodeTop, true],
+        ['📍 Port', x.port, true],
+        ['👤 Auditor', x.auditor, false],
+        ['📅 Tanggal Audit', x.tanggalAudit, false],
+        ['📊 Hasil', (11 - tidak.length) + ' YA, ' + tidak.length + ' TIDAK', false],
+        ['⚠️ Poin TIDAK', tidak.length ? tidak.join('\n') : 'Semua poin YA ✅', false],
+        ['📷 Foto Bukti', extra && extra.fotoUrl, false]
       ]),
       timestamp: new Date().toISOString()
     };
@@ -335,6 +335,73 @@ async function sendDiscord(url, embed) {
   } catch (e) {
     console.error('Gagal kirim Discord: ' + e.message); // tidak boleh menggagalkan penyimpanan data
   }
+}
+
+function buildDiscordTestEmbed(jenis) {
+  const shared = {
+    jenisAgen: 'Agen',
+    namaAgen: 'Contoh Tes Integrasi',
+    kodeTop: 'TEST-001',
+    portArea: 'PORT TEST',
+    statusAgen: 'Independent',
+    kepemilikan: 'Independent',
+    noTelp: '081234567890',
+    namaJalan: 'Jl. Contoh No. 1',
+    kelurahan: 'Setu',
+    kecamatan: 'Cipayung',
+    kabupatenKota: 'Jakarta Timur',
+    provinsi: 'DKI Jakarta',
+    kodePos: '13880',
+    deskripsi: 'Pesan TEST dari Admin Galeri. Tidak ada data formulir yang dikirim atau disimpan.'
+  };
+  let data;
+  let extra = {};
+
+  if (jenis === 'banner') {
+    data = { ...shared, tambahan: 'Tes notifikasi', paketAll: true, ukuranBanner: '2:1' };
+  } else if (jenis === 'gmaps') {
+    data = {
+      ...shared,
+      jenisPermintaan: 'Tes Integrasi',
+      mapsBaru: 'https://maps.google.com/?q=-6.2,106.8',
+      mapsLama: '',
+      mapsSaatIni: '',
+      alamatLama: '',
+      jamOperasional: '09.00 WIB - 17.00 WIB'
+    };
+  } else if (jenis === 'cabang') {
+    data = {
+      ...shared,
+      tipe: 'PORT TEST',
+      tipeTop: 'Agen',
+      tanggalPembukaan: '2099-01-01',
+      alamat: shared.namaJalan,
+      telepon: shared.noTelp,
+      provinsiNama: shared.provinsi,
+      kabupatenNama: shared.kabupatenKota,
+      kecamatanNama: shared.kecamatan,
+      kelurahanNama: shared.kelurahan,
+      gmaps: 'https://maps.google.com/?q=-6.2,106.8'
+    };
+  } else if (jenis === 'audit') {
+    data = { ...shared, port: 'PORT TEST', auditor: 'Tes Integrasi', tanggalAudit: '2099-01-01' };
+    for (let i = 1; i <= 11; i++) data['q' + i] = i === 1 ? 'TIDAK' : 'YA';
+  } else {
+    return null;
+  }
+
+  const embed = DISCORD_EMBEDS[jenis](data, extra);
+  embed.title = '🧪 TEST · ' + embed.title;
+  return embed;
+}
+
+async function sendDiscordTest(url, embed) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'Form Notifikasi · TEST', embeds: [embed] })
+  });
+  if (!response.ok) throw new Error('Discord menolak pesan (HTTP ' + response.status + ')');
 }
 
 const DEFAULT_GALLERY = { slides: [
@@ -472,6 +539,33 @@ export default {
   async fetch(request, env, ctx) {
     const cors = corsHeaders(request, env);
     const url = new URL(request.url);
+    if (url.searchParams.get('resource') === 'discord-test') {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      if (request.method !== 'POST') return fail('Method tidak diizinkan', 405, cors);
+      if (!allowedList(env).length || !originAllowed(request.headers.get('Origin'), env)) return fail('Origin admin belum diizinkan', 403, cors);
+      if (!env.GALLERY_KV) return fail('Binding GALLERY_KV belum dikonfigurasi', 503, cors);
+      const session = request.headers.get('X-Admin-Session') || '';
+      if (!session || !(await env.GALLERY_KV.get('gallery-session:' + session))) return fail('Sesi login berakhir, silakan login kembali', 401, cors);
+
+      const parsed = await readLimitedJson(request);
+      if (parsed.error) return fail(parsed.error, 400, cors);
+      const jenis = parsed.value && parsed.value.form;
+      const embed = buildDiscordTestEmbed(jenis);
+      if (!embed) return fail('Jenis form tes tidak valid', 400, cors);
+      const hook = webhookFor(env, jenis);
+      if (!hook) return fail('Webhook Discord untuk form ini belum dikonfigurasi', 503, cors);
+
+      const cooldownKey = 'discord-test-cooldown:' + session + ':' + jenis;
+      if (await env.GALLERY_KV.get(cooldownKey)) return fail('Tunggu 15 detik sebelum mengirim tes berikutnya untuk form ini', 429, cors);
+      await env.GALLERY_KV.put(cooldownKey, '1', { expirationTtl: 15 });
+      try {
+        await sendDiscordTest(hook, embed);
+        return json({ ok: true, test: true, form: jenis }, 200, cors);
+      } catch (err) {
+        console.error('Discord test gagal:', err && err.message);
+        return fail('Gagal mengirim notifikasi tes ke Discord', 502, cors);
+      }
+    }
     if (url.searchParams.get('resource') === 'drive-image') {
       if (request.method !== 'GET') return fail('Method tidak diizinkan', 405, cors);
       const fileId = url.searchParams.get('id') || '';

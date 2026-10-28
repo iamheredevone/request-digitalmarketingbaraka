@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#003462">
   <meta name="description" content="Kelola gambar carousel Baraka Express.">
   <title>Admin Galeri | Baraka Express</title>
-  <link rel="stylesheet" href="admin-gallery.css">
+  <link rel="stylesheet" href="admin-gallery.css?v=discord-test-1">
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
   <style>
     /* Tautan Super Admin di bawah tombol login galeri */
@@ -108,12 +108,24 @@
         <button id="save" type="button">Simpan perubahan</button>
         <button id="logout" type="button">Keluar</button>
       </div>
+      <div class="discord-test-actions">
+        <label for="discordTestForm">Tes notifikasi Discord
+          <select id="discordTestForm">
+            <option value="banner">Permintaan Desain</option>
+            <option value="gmaps">Google Maps</option>
+            <option value="cabang">Pendaftaran Cabang/Agen</option>
+            <option value="audit">Audit Branding</option>
+          </select>
+        </label>
+        <button id="discordTestButton" type="button">Kirim notifikasi TEST</button>
+        <p>Pesan akan diberi label TEST. Data formulir dan spreadsheet tidak diubah.</p>
+      </div>
       <p class="hint">Format upload: JPG, PNG, WebP, maksimal 500 MB per gambar. Sesi login berlaku 30 menit.</p>
     </section>
 
     <div class="status" id="status" role="status" aria-live="polite"></div>
   </main>
 
-  <script src="admin-gallery.js"></script>
+  <script src="admin-gallery.js?v=discord-test-1"></script>
 </body>
 </html>
