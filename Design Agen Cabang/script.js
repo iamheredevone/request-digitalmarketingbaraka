@@ -13,6 +13,7 @@ const $ = (id) => document.getElementById(id);
 const form = () => $("formDesain");
 let agentDirectory = [];
 let autoFilledAgent = "";
+let activeSuggestion = -1;
 
 function normalizeAgentName(value) {
   return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " ").toLocaleLowerCase("id-ID");
@@ -32,10 +33,90 @@ function setOwnership(value) {
   const normalized = normalizeAgentName(value);
   const choice = normalized.includes("independent") || normalized.includes("independen")
     ? "Independent"
-    : normalized.includes("pusat") ? "Pusat" : "";
+    : normalized.includes("pusat") || normalized.includes("perusahaan") ? "Pusat" : "";
   if (!choice) return;
   const radio = document.querySelector(`input[name="statusAgen"][value="${choice}"]`);
   if (radio) radio.checked = true;
+}
+
+function closeAgentSuggestions() {
+  const suggestions = $("agentSuggestions");
+  if (!suggestions) return;
+  suggestions.hidden = true;
+  suggestions.replaceChildren();
+  $("namaAgen").setAttribute("aria-expanded", "false");
+  activeSuggestion = -1;
+}
+
+function chooseAgent(item) {
+  $("namaAgen").value = item.name;
+  closeAgentSuggestions();
+  applyAgentDirectoryMatch();
+}
+
+function setActiveSuggestion(index) {
+  const suggestions = $("agentSuggestions");
+  if (!suggestions) return;
+  const options = Array.from(suggestions.querySelectorAll(".agent-suggestion"));
+  if (!options.length) return;
+  activeSuggestion = Math.max(0, Math.min(index, options.length - 1));
+  options.forEach((option, optionIndex) => {
+    const active = optionIndex === activeSuggestion;
+    option.classList.toggle("active", active);
+    option.setAttribute("aria-selected", String(active));
+  });
+  options[activeSuggestion].scrollIntoView({ block: "nearest" });
+}
+
+function renderAgentSuggestions() {
+  const input = $("namaAgen");
+  const suggestions = $("agentSuggestions");
+  const query = normalizeAgentName(input && input.value);
+  if (!suggestions || !query || !agentDirectory.length) {
+    closeAgentSuggestions();
+    return;
+  }
+
+  const exactMatch = agentDirectory.find((item) => normalizeAgentName(item.name) === query);
+  if (exactMatch) {
+    closeAgentSuggestions();
+    applyAgentDirectoryMatch();
+    return;
+  }
+
+  const matches = agentDirectory
+    .filter((item) => normalizeAgentName(item.name).includes(query))
+    .slice(0, 12);
+  if (!matches.length) {
+    closeAgentSuggestions();
+    return;
+  }
+
+  suggestions.replaceChildren(...matches.map((item, index) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "agent-suggestion";
+    option.dataset.name = item.name;
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", "false");
+    const name = document.createElement("span");
+    name.className = "agent-suggestion-name";
+    name.textContent = item.name;
+    const meta = document.createElement("span");
+    meta.className = "agent-suggestion-meta";
+    meta.textContent = [item.jenisTop, item.kepemilikan, item.kodeTop, item.portArea].filter(Boolean).join(" · ");
+    option.append(name, meta);
+    option.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      chooseAgent(item);
+    });
+    option.addEventListener("mouseenter", () => setActiveSuggestion(index));
+    suggestions.append(option);
+    return option;
+  }));
+  suggestions.hidden = false;
+  $("namaAgen").setAttribute("aria-expanded", "true");
+  activeSuggestion = -1;
 }
 
 function applyAgentDirectoryMatch() {
@@ -71,19 +152,11 @@ async function loadAgentDirectory() {
     if (!response.ok) throw new Error(payload.error || "Daftar nama tidak tersedia.");
     agentDirectory = Array.isArray(payload.agents) ? payload.agents : [];
 
-    const options = $("agentDirectoryOptions");
-    if (options) {
-      options.replaceChildren(...agentDirectory.map((item) => {
-        const option = document.createElement("option");
-        option.value = item.name;
-        option.label = [item.jenisTop, item.kepemilikan, item.kodeTop, item.portArea].filter(Boolean).join(" · ");
-        return option;
-      }));
-    }
     if (status) status.textContent = agentDirectory.length
       ? `${agentDirectory.length} nama tersedia. Pilih saran atau ketik nama yang sesuai.`
       : "Belum ada data nama di spreadsheet.";
     applyAgentDirectoryMatch();
+    renderAgentSuggestions();
   } catch (error) {
     console.warn("Daftar agen/cabang gagal dimuat.", error);
     if (status) status.textContent = "Daftar nama belum termuat. Field tetap bisa diisi manual.";
@@ -182,7 +255,34 @@ document.addEventListener("input", (e) => {
   }
 });
 
-$("namaAgen").addEventListener("input", applyAgentDirectoryMatch);
+$("namaAgen").addEventListener("input", () => {
+  applyAgentDirectoryMatch();
+  renderAgentSuggestions();
+});
+$("namaAgen").addEventListener("focus", renderAgentSuggestions);
+$("namaAgen").addEventListener("blur", () => setTimeout(closeAgentSuggestions, 120));
+$("namaAgen").addEventListener("keydown", (event) => {
+  const suggestions = $("agentSuggestions");
+  const options = suggestions ? Array.from(suggestions.querySelectorAll(".agent-suggestion")) : [];
+  if (!options.length || suggestions.hidden) {
+    if (event.key === "Escape") closeAgentSuggestions();
+    return;
+  }
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    setActiveSuggestion(activeSuggestion + 1);
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    setActiveSuggestion(activeSuggestion < 0 ? options.length - 1 : activeSuggestion - 1);
+  } else if (event.key === "Enter" && activeSuggestion >= 0) {
+    event.preventDefault();
+    const selectedName = options[activeSuggestion].dataset.name;
+    const selected = agentDirectory.find((item) => item.name === selectedName);
+    if (selected) chooseAgent(selected);
+  } else if (event.key === "Escape") {
+    closeAgentSuggestions();
+  }
+});
 ["jenisAgen", "portArea"].forEach((id) => {
   $(id).addEventListener("change", () => { autoFilledAgent = ""; });
 });

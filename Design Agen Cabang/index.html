@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-  <link rel="stylesheet" href="style.css?v=agent-directory-2" />
+  <link rel="stylesheet" href="style.css?v=agent-directory-3" />
   <link rel="stylesheet" href="../shared/site-chrome.css?v=8">
   <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=2">
 </head>
@@ -49,8 +49,10 @@
               <option value="Cabang">Cabang</option>
               <option value="PORT">PORT</option>
             </select>
-            <input id="namaAgen" name="namaAgen" list="agentDirectoryOptions" placeholder="Ketik nama TOP" autocomplete="off" aria-describedby="agentDirectoryStatus" required />
-            <datalist id="agentDirectoryOptions"></datalist>
+            <div class="agent-name-wrap">
+              <input id="namaAgen" name="namaAgen" placeholder="Ketik nama TOP" autocomplete="off" aria-autocomplete="list" aria-controls="agentSuggestions" aria-expanded="false" aria-describedby="agentDirectoryStatus" required />
+              <div id="agentSuggestions" class="agent-suggestions" role="listbox" aria-label="Pilihan nama TOP" hidden></div>
+            </div>
           </div>
           <small id="agentDirectoryStatus" class="field-hint" role="status" aria-live="polite">Memuat daftar nama cabang…</small>
         </div>
@@ -306,7 +308,7 @@
   </footer>
 
   <script src="../shared/wilayah.js"></script>
-  <script src="script.js?v=agent-directory-2"></script>
+  <script src="script.js?v=agent-directory-3"></script>
   <script src="../shared/site-chrome.js?v=1"></script>
 </body>
 </html>
