@@ -29,6 +29,7 @@ Editor berada di `admin-site-editor.html` dan dibuka dari Admin Galeri setelah l
 - `GALLERY_KV` menyimpan metadata carousel (`gallery`), session admin (`gallery-session:*`), status upload resumable (`gallery-upload:*`), dan sekarang draft/versi halaman (`site-editor:*`). Tidak ada D1 atau R2 yang dipakai.
 - Gambar carousel diunggah ke Google Drive pada `DRIVE_FOLDER_ID`; Worker mengirim gambar melalui endpoint `drive-image` setelah memeriksa daftar carousel.
 - Worker menulis data formulir ke Google Sheets (`SPREADSHEET_ID`, `GOOGLE_CLIENT_EMAIL`, `GOOGLE_PRIVATE_KEY`) dan mengirim notifikasi ke webhook Discord per form. Foto Audit juga disimpan di Google Drive. Editor tidak mengubah kontrak/integrasi tersebut.
+- Form Permintaan Desain mengambil direktori TOP dari tab `PJ KORWIL` melalui endpoint `?resource=agent-directory`. Worker hanya membaca kolom A, C:E, dan I (`Nama TOP`, `JENIS TOP`, `KEPEMILIKAN`, `Kode TOP`, `PORT`) dan hanya mengirim lima data itu ke halaman. Bagikan spreadsheet master sebagai Viewer kepada email service account Worker. ID spreadsheet dan nama tab ada di konstanta `AGENT_DIRECTORY_SPREADSHEET_ID` dan `AGENT_DIRECTORY_SHEET` pada Worker. Endpoint tidak memakai cache sehingga update spreadsheet terbaca saat form dimuat kembali.
 - `worker.js` dan `workerbckup.js` adalah varian lama. Deploy hanya `worker-cloudflare-gallery.js`.
 
 ### Cara kerja editor

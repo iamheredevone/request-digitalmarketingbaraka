@@ -6,10 +6,89 @@
 // ===================== PENGATURAN =====================
 // Isi dengan URL tujuan pengiriman data (mis. Web App Google Apps Script, berakhiran /exec)
 const SCRIPT_URL = "https://digitalmarketing.iamhere-devone.workers.dev/";
+const AGENT_DIRECTORY_URL = `${SCRIPT_URL}?resource=agent-directory`;
 
 // ===================== HELPER =====================
 const $ = (id) => document.getElementById(id);
 const form = () => $("formDesain");
+let agentDirectory = [];
+let autoFilledAgent = "";
+
+function normalizeAgentName(value) {
+  return String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " ").toLocaleLowerCase("id-ID");
+}
+
+function setSelectValue(select, value) {
+  if (!select || !value) return;
+  let option = Array.from(select.options).find((item) => normalizeAgentName(item.value) === normalizeAgentName(value));
+  if (!option) {
+    option = new Option(value, value, true, true);
+    select.add(option);
+  }
+  select.value = option.value;
+}
+
+function setOwnership(value) {
+  const normalized = normalizeAgentName(value);
+  const choice = normalized.includes("independent") || normalized.includes("independen")
+    ? "Independent"
+    : normalized.includes("pusat") ? "Pusat" : "";
+  if (!choice) return;
+  const radio = document.querySelector(`input[name="statusAgen"][value="${choice}"]`);
+  if (radio) radio.checked = true;
+}
+
+function applyAgentDirectoryMatch() {
+  const nameInput = $("namaAgen");
+  const name = normalizeAgentName(nameInput && nameInput.value);
+  const match = name && agentDirectory.find((item) => normalizeAgentName(item.name) === name);
+  const status = $("agentDirectoryStatus");
+
+  if (match) {
+    setSelectValue($("jenisAgen"), match.jenisTop);
+    setSelectValue($("portArea"), match.portArea);
+    setOwnership(match.kepemilikan);
+    $("kodeTop").value = match.kodeTop || "";
+    autoFilledAgent = name;
+    if (status) status.textContent = `Jenis TOP, kepemilikan, kode, dan PORT terisi otomatis untuk ${match.name}.`;
+    return;
+  }
+
+  if (autoFilledAgent) {
+    $("jenisAgen").value = "";
+    $("portArea").value = "";
+    document.querySelectorAll('input[name="statusAgen"]').forEach((radio) => { radio.checked = false; });
+    $("kodeTop").value = "";
+    autoFilledAgent = "";
+  }
+}
+
+async function loadAgentDirectory() {
+  const status = $("agentDirectoryStatus");
+  try {
+    const response = await fetch(AGENT_DIRECTORY_URL, { cache: "no-store" });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "Daftar nama tidak tersedia.");
+    agentDirectory = Array.isArray(payload.agents) ? payload.agents : [];
+
+    const options = $("agentDirectoryOptions");
+    if (options) {
+      options.replaceChildren(...agentDirectory.map((item) => {
+        const option = document.createElement("option");
+        option.value = item.name;
+        option.label = [item.jenisTop, item.kepemilikan, item.kodeTop, item.portArea].filter(Boolean).join(" · ");
+        return option;
+      }));
+    }
+    if (status) status.textContent = agentDirectory.length
+      ? `${agentDirectory.length} nama tersedia. Pilih saran atau ketik nama yang sesuai.`
+      : "Belum ada data nama di spreadsheet.";
+    applyAgentDirectoryMatch();
+  } catch (error) {
+    console.warn("Daftar agen/cabang gagal dimuat.", error);
+    if (status) status.textContent = "Daftar nama belum termuat. Field tetap bisa diisi manual.";
+  }
+}
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -103,6 +182,14 @@ document.addEventListener("input", (e) => {
   }
 });
 
+$("namaAgen").addEventListener("input", applyAgentDirectoryMatch);
+["jenisAgen", "portArea"].forEach((id) => {
+  $(id).addEventListener("change", () => { autoFilledAgent = ""; });
+});
+document.querySelectorAll('input[name="statusAgen"]').forEach((radio) => {
+  radio.addEventListener("change", () => { autoFilledAgent = ""; });
+});
+
 // ===================== KUMPULKAN DATA FORM =====================
 function collectData() {
   const f = form();
@@ -118,6 +205,7 @@ function collectData() {
     jenisForm: "banner",
     jenisAgen: fd.get("jenisAgen") || "",
     namaAgen: (fd.get("namaAgen") || "").trim(),
+    kodeTop: (fd.get("kodeTop") || "").trim(),
     portArea: fd.get("portArea") || "",
     statusAgen: fd.get("statusAgen") || "",
     namaJalan: (fd.get("namaJalan") || "").trim(),
@@ -153,9 +241,11 @@ function showConfirmModal(e) {
 
   const sections = [
     {
-      title: "Data Agen / Cabang",
+      title: "Data TOP",
       rows: [
-        ["Nama", `${d.jenisAgen} ${d.namaAgen}`],
+        ["Nama TOP", d.namaAgen],
+        ["Jenis TOP", d.jenisAgen],
+        ["Kode TOP", d.kodeTop],
         ["PORT Area", d.portArea],
         ["Kepemilikan", d.statusAgen],
         ["Nomor Telepon", d.noTelp],
@@ -302,3 +392,4 @@ window.addEventListener("click", (e) => {
 
 checkTambahan();
 checkCustomUkuran();
+loadAgentDirectory();

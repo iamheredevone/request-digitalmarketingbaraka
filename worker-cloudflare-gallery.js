@@ -17,6 +17,8 @@
  *   DRIVE_FOLDER_ID   : ID folder foto audit (harus di Shared Drive)
  *   GALLERY_ADMIN_ID, GALLERY_ADMIN_PASSWORD : Secret login admin gallery
  *   GALLERY_KV        : binding KV untuk data gallery dan sesi login
+ *   Master direktori TOP memakai spreadsheet PJ Korwil. Berikan akses Viewer
+ *   spreadsheet tersebut ke GOOGLE_CLIENT_EMAIL agar Worker bisa membaca datanya.
  *   ALLOWED_ORIGINS   : origin GitHub Pages untuk admin, daftar dipisah koma
  *                       Kosong = akses admin ditolak; endpoint form tetap mengikuti perilaku lama.
  * SHEET_NAME tidak dipakai lagi (nama tab ditentukan di bawah).
@@ -251,6 +253,7 @@ const DISCORD_EMBEDS = {
     color: 15105570,
     fields: dFields([
       ['Nama Agen/Cabang', [x.jenisAgen, x.namaAgen].filter(Boolean).join(' '), false],
+      ['Kode TOP', x.kodeTop, true],
       ['PORT Area', x.portArea, true],
       ['Pemilik', x.statusAgen, true],
       ['No. Telepon', x.noTelp, true],
@@ -342,6 +345,10 @@ const DEFAULT_GALLERY = { slides: [
   { path: 'assets/Cabang Mojokerto Timur WEB.png', alt: 'Cabang Mojokerto Timur' }
 ] };
 
+const AGENT_DIRECTORY_SPREADSHEET_ID = '19ErJSiCRFFeBLIwm7FHptke9DbwdIKQgD2XvLh8jBKs';
+const AGENT_DIRECTORY_SHEET = 'PJ KORWIL';
+const AGENT_DIRECTORY_ROW_LIMIT = 3000;
+
 const SITE_EDITOR_VERSION_LIMIT = 20;
 const SITE_EDITOR_CONTENT_LIMIT = 256 * 1024;
 const SITE_EDITOR_SECTIONS = ['hero', 'services', 'custom', 'digital', 'gallery', 'contact'];
@@ -415,6 +422,51 @@ async function readLimitedJson(request) {
   if (new TextEncoder().encode(text).length > SITE_EDITOR_CONTENT_LIMIT) return { error: 'Data editor terlalu besar (maksimal 256 KB)' };
   try { return { value: JSON.parse(text) }; } catch (err) { return { error: 'JSON editor tidak valid' }; }
 }
+
+function normalizedSheetHeader(value) {
+  return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+async function readAgentDirectory(env) {
+  const sheet = `'${AGENT_DIRECTORY_SHEET.replace(/'/g, "''")}'`;
+  const params = new URLSearchParams();
+  [`${sheet}!A1:A${AGENT_DIRECTORY_ROW_LIMIT}`, `${sheet}!C1:E${AGENT_DIRECTORY_ROW_LIMIT}`, `${sheet}!I1:I${AGENT_DIRECTORY_ROW_LIMIT}`].forEach((range) => params.append('ranges', range));
+  params.set('valueRenderOption', 'FORMATTED_VALUE');
+  const accessToken = await getAccessToken(env);
+  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(AGENT_DIRECTORY_SPREADSHEET_ID)}/values:batchGet?${params.toString()}`;
+  const response = await fetch(endpoint, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+  if (!response.ok) throw new Error('Sheets directory read ' + response.status + ': ' + await response.text());
+  const result = await response.json();
+  const valueRanges = Array.isArray(result.valueRanges) ? result.valueRanges : [];
+  const nameRows = valueRanges[0] && Array.isArray(valueRanges[0].values) ? valueRanges[0].values : [];
+  const metadataRows = valueRanges[1] && Array.isArray(valueRanges[1].values) ? valueRanges[1].values : [];
+  const portRows = valueRanges[2] && Array.isArray(valueRanges[2].values) ? valueRanges[2].values : [];
+  const rowCount = Math.min(AGENT_DIRECTORY_ROW_LIMIT, Math.max(nameRows.length, metadataRows.length, portRows.length));
+  const headerRow = Array.from({ length: rowCount }, (_, index) => index).find((index) =>
+    normalizedSheetHeader(nameRows[index] && nameRows[index][0]) === 'nama top' &&
+    normalizedSheetHeader(metadataRows[index] && metadataRows[index][0]) === 'jenis top' &&
+    normalizedSheetHeader(metadataRows[index] && metadataRows[index][1]) === 'kepemilikan' &&
+    normalizedSheetHeader(metadataRows[index] && metadataRows[index][2]) === 'kode top' &&
+    normalizedSheetHeader(portRows[index] && portRows[index][0]) === 'port'
+  );
+  if (headerRow === undefined) {
+    throw new Error('Header wajib: Nama TOP, JENIS TOP, KEPEMILIKAN, Kode TOP, PORT');
+  }
+  const byName = new Map();
+  for (let index = headerRow + 1; index < rowCount; index += 1) {
+    const name = str(nameRows[index] && nameRows[index][0], 150);
+    if (!name) continue;
+    byName.set(normalizedSheetHeader(name), {
+      name,
+      jenisTop: str(metadataRows[index] && metadataRows[index][0], 50),
+      kepemilikan: str(metadataRows[index] && metadataRows[index][1], 50),
+      kodeTop: str(metadataRows[index] && metadataRows[index][2], 50),
+      portArea: str(portRows[index] && portRows[index][0], 100)
+    });
+  }
+  return Array.from(byName.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'));
+}
+
 /* ===================== ENTRY POINT ===================== */
 export default {
   async fetch(request, env, ctx) {
@@ -436,6 +488,19 @@ export default {
         headers.set('Cache-Control', 'public, max-age=3600');
         return new Response(image.body, { status: 200, headers });
       } catch (err) { return fail('Gagal mengambil gambar dari Drive', 500, cors); }
+    }
+    if (url.searchParams.get('resource') === 'agent-directory') {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+      if (request.method !== 'GET') return fail('Method tidak diizinkan', 405, cors);
+      if (!env.GOOGLE_CLIENT_EMAIL || !env.GOOGLE_PRIVATE_KEY) return fail('Konfigurasi Google Sheets Worker belum lengkap', 503, cors);
+      try {
+        const response = json({ agents: await readAgentDirectory(env) }, 200, cors);
+        response.headers.set('Cache-Control', 'no-store');
+        return response;
+      } catch (err) {
+        console.error('Daftar agen dari spreadsheet gagal dibaca:', err && err.message);
+        return fail('Gagal membaca daftar nama agen. Periksa nama tab dan header kolom spreadsheet.', 500, cors);
+      }
     }
     if (url.searchParams.get('resource') === 'site-editor') {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
