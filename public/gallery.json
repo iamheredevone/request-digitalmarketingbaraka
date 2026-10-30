@@ -1,0 +1,9 @@
+{
+  "slides": [
+    { "path": "assets/Cabang Pekanbaru Utara WEB.png", "alt": "Cabang Pekanbaru Utara" },
+    { "path": "assets/Cabang Bekasi Utara WEB.jpg", "alt": "Cabang Bekasi Utara" },
+    { "path": "assets/Agen Surabaya Manukan WEB.png", "alt": "Agen Surabaya Manukan" },
+    { "path": "assets/Cabang Curup WEB.jpg", "alt": "Cabang Curup" },
+    { "path": "assets/Cabang Mojokerto Timur WEB.png", "alt": "Cabang Mojokerto Timur" }
+  ]
+}

@@ -1,4 +1,4 @@
-(() => {
+export function initAdminSiteEditor() {
   const G = "https://digitalmarketing.iamhere-devone.workers.dev/?resource=gallery";
   const E = "https://digitalmarketing.iamhere-devone.workers.dev/?resource=site-editor";
   const $ = (s) => document.querySelector(s);
@@ -304,4 +304,4 @@
   function undo(n){let k=hi+n;if(k<0||k>=history.length)return;hi=k;data=JSON.parse(history[hi]);drawAll();status("Riwayat edit dipulihkan.")}
   $("#loginForm").addEventListener("submit",login);$("#addComponentButton").addEventListener("click",addComponent);$("#addTextButton").addEventListener("click",()=>addCustom("text"));$("#addCardButton").addEventListener("click",()=>addCustom("card"));$("#duplicateButton").addEventListener("click",duplicate);$("#deleteButton").addEventListener("click",remove);$("#undoButton").addEventListener("click",()=>undo(-1));$("#redoButton").addEventListener("click",()=>undo(1));$("#saveDraftButton").addEventListener("click",saveDraft);$("#publishButton").addEventListener("click",publish);$("#versionsButton").addEventListener("click",versions);$("#rollbackButton").addEventListener("click",rollback);$("#logoutButton").addEventListener("click",()=>logout());preview.addEventListener("load",frameReady);window.addEventListener("message",previewMessage);if(canvasStage)canvasStage.addEventListener("scroll",syncPreviewScroll,{passive:true});setTimeout(requestPreviewReady,0);document.querySelectorAll("[data-device]").forEach(b=>b.addEventListener("click",()=>device(b.dataset.device)));
   document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey))return;let k=e.key.toLowerCase();if(k==="z"&&!e.shiftKey){e.preventDefault();undo(-1)}else if(k==="y"||(k==="z"&&e.shiftKey)){e.preventDefault();undo(1)}else if(k==="s"){e.preventDefault();saveDraft()}});
-})();
+}

@@ -191,7 +191,7 @@ const AUDIT_POIN = [
 function dFields(list) {
   return list
     .filter((f) => str(f[1], 1000))
-    .map((f) => ({ name: `### ${f[0]}`, value: str(f[1], 1000), inline: !!f[2] }));
+    .map((f) => ({ name: str(f[0], 256), value: str(f[1], 1000), inline: !!f[2] }));
 }
 function titleCaseId(value, max = 1000) {
   return str(value, max)
@@ -556,8 +556,9 @@ export default {
       if (!hook) return fail('Webhook Discord untuk form ini belum dikonfigurasi', 503, cors);
 
       const cooldownKey = 'discord-test-cooldown:' + session + ':' + jenis;
-      if (await env.GALLERY_KV.get(cooldownKey)) return fail('Tunggu 15 detik sebelum mengirim tes berikutnya untuk form ini', 429, cors);
-      await env.GALLERY_KV.put(cooldownKey, '1', { expirationTtl: 15 });
+      if (await env.GALLERY_KV.get(cooldownKey)) return fail('Tunggu 1 menit sebelum mengirim tes berikutnya untuk form ini', 429, cors);
+      // Cloudflare KV requires expirationTtl to be at least 60 seconds.
+      await env.GALLERY_KV.put(cooldownKey, '1', { expirationTtl: 60 });
       try {
         await sendDiscordTest(hook, embed);
         return json({ ok: true, test: true, form: jenis }, 200, cors);

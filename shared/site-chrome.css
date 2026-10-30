@@ -9,6 +9,13 @@ body.portal-page {
   overflow-x: hidden;
 }
 
+body.portal-page #app,
+body.portal-page #app > .portal-page {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
 body.portal-branch-form {
   padding-bottom: 0 !important;
 }
