@@ -50,7 +50,7 @@ onMounted(() => { document.title = 'Pendaftaran Agen / Cabang Baru | Baraka Expr
             <div class="row">
               <div class="field small"><label>Port Area <span class="req">*</span></label><select v-model="form.tipe" required><option value="">Pilih Port Area</option><option v-for="port in ports" :key="port" :value="`PORT_${port}`">PORT {{ port }}</option></select></div>
               <div class="field small"><label>Tipe TOP <span class="req">*</span></label><select v-model="form.tipeTop" required><option value="">Pilih Tipe</option><option value="PORT">PORT</option><option value="Cabang">Cabang</option><option value="Agen">Agen</option></select></div>
-              <div class="field"><label>Lokasi Pembukaan Agen/Cabang <span class="req">*</span></label><input v-model.trim="form.namaAgen" required maxlength="150"></div>
+              <div class="field"><label>Lokasi Pembukaan Agen/Cabang <span class="req">*</span></label><input v-model.trim="form.namaAgen" type="text" required maxlength="150"></div>
             </div>
             <div class="row"><div class="field"><label>Kepemilikan <span class="req">*</span></label><div class="radio-group"><label class="radio-option"><input v-model="form.kepemilikan" type="radio" name="kepemilikan" value="Pusat" required> Pusat</label><label class="radio-option"><input v-model="form.kepemilikan" type="radio" name="kepemilikan" value="Independent"> Independent</label></div></div></div>
             <div class="row"><div class="field small"><label>Tanggal Pembukaan TOP <span class="req">*</span></label><input v-model="form.tanggalPembukaan" type="date" required></div></div>
