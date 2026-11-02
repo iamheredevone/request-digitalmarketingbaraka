@@ -688,7 +688,7 @@ export default {
         for (const item of removed) await env.GALLERY_KV.delete('site-editor:version:' + item.id);
         await env.GALLERY_KV.put('site-editor:version:' + version, JSON.stringify({ content, updatedAt: now }));
         if (action === 'publish') await env.GALLERY_KV.delete('site-editor:draft');
-        return json({ ok: true, version, updatedAt: now, rolledBackFrom }, 200, cors);
+        return json({ ok: true, version, updatedAt: now, rolledBackFrom, serviceColorsPreserved: true }, 200, cors);
       }
       return fail('Action editor tidak dikenal', 404, cors);
     }    if (url.searchParams.get('resource') === 'gallery') {
