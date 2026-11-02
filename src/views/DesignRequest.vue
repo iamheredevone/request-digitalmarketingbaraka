@@ -163,11 +163,11 @@ onMounted(async () => {
           <button type="submit">Kirim Permintaan</button>
         </form>
       </div>
-      <div v-if="showReview" id="reviewModal" class="modal show" role="dialog" aria-modal="true" @click.self="showReview = false"><div class="modal-content"><button class="close" type="button" aria-label="Tutup" @click="showReview = false">&times;</button><div class="modal-header">Konfirmasi Data</div><div id="reviewContent" class="review-content">
+      <div v-if="showReview" id="reviewModal" class="modal review-modal show" role="dialog" aria-modal="true" aria-labelledby="reviewTitle" @click.self="showReview = false"><div class="modal-content review-dialog"><button class="close" type="button" aria-label="Tutup" @click="showReview = false">&times;</button><div id="reviewTitle" class="modal-header">Konfirmasi Permintaan</div><p class="review-subtitle">Periksa kembali informasi TOP, alamat, dan permintaan Anda sebelum dikirim.</p><div id="reviewContent" class="review-content">
         <section><div class="rv-title">Data TOP</div><div class="rv-row"><span>Nama TOP</span><strong>{{ model.namaAgen || '-' }}</strong></div><div class="rv-row"><span>Jenis TOP</span><strong>{{ model.jenisAgen || '-' }}</strong></div><div class="rv-row"><span>Kode TOP</span><strong>{{ model.kodeTop || '-' }}</strong></div><div class="rv-row"><span>PORT Area</span><strong>{{ model.portArea || '-' }}</strong></div><div class="rv-row"><span>Kepemilikan</span><strong>{{ model.statusAgen || '-' }}</strong></div><div class="rv-row"><span>Telepon</span><strong>{{ model.noTelp || '-' }}</strong></div></section>
         <section><div class="rv-title">Alamat</div><div v-for="[label,value] in [['Jalan / Patokan',model.namaJalan],['Provinsi',regions.provinceName()],['Kabupaten / Kota',regions.cityName()],['Kecamatan',regions.districtName()],['Kelurahan / Desa',regions.villageName()],['Kode Pos',regions.postalCode.value]]" :key="label" class="rv-row"><span>{{ label }}</span><strong>{{ value || '-' }}</strong></div></section>
         <section><div class="rv-title">Permintaan</div><div class="rv-row"><span>Jenis</span><strong>{{ allPackage ? 'Paket Cabang / Agen Baru' : selectedRequests.join(', ') || '-' }}</strong></div><div v-if="allPackage" class="rv-row"><span>Isi Paket</span><strong>{{ selectedRequests.join(', ') }}</strong></div><div v-if="model.ukuranBanner" class="rv-row"><span>Ukuran Spanduk</span><strong>{{ model.ukuranBanner === 'custom' ? model.customUkuran : model.ukuranBanner }}</strong></div><div class="rv-row"><span>Deskripsi</span><strong>{{ model.deskripsi || '-' }}</strong></div></section>
-      </div><div class="btn-group-modal"><button type="button" style="background:#e2e8f0;color:#333" :disabled="busy" @click="showReview = false">Edit Form</button><button type="button" id="btnKirim" :disabled="busy" @click="submit">{{ busy ? 'Mengirim...' : 'Konfirmasi & Kirim' }}</button></div></div></div>
+      </div><div class="btn-group-modal"><button type="button" class="review-edit-button" :disabled="busy" @click="showReview = false">Edit Form</button><button type="button" id="btnKirim" :disabled="busy" @click="submit">{{ busy ? 'Mengirim...' : 'Konfirmasi & Kirim' }}</button></div></div></div>
       <div v-if="showDesign" id="designModal" class="modal show" role="dialog" aria-modal="true" @click.self="showDesign = false"><div class="modal-content"><button class="close" type="button" aria-label="Tutup" @click="showDesign = false">&times;</button><div class="modal-header">Contoh Design</div><div class="design-grid"><div class="design-item"><img src="https://drive.google.com/thumbnail?id=1HURX2QoKa9n05OFurrFZl0SPwYPiidC5" alt="Brosur"><b>Brosur Cetak</b></div><div class="design-item"><img src="https://drive.google.com/thumbnail?id=1JrgdrUz4utippW8D1lxMWM0CqTFg1dJO&amp;sz" alt="Spanduk"><b>Spanduk Komersial</b></div><div class="design-item"><img src="https://drive.google.com/thumbnail?id=1w6lI5XpALFHQyxfuurFTtsHADlHeQDna" alt="Plang"><b>Papan Nama Luar</b></div></div></div></div>
       <div v-if="notice.text" id="msg" class="app-notice" :class="{ error: notice.error }" role="status">{{ notice.text }}</div>
     </PortalChrome>
@@ -180,13 +180,24 @@ onMounted(async () => {
 .agent-suggestion { display: flex; flex-direction: column; width: 100%; padding: 10px 12px; text-align: left; border: 0; background: white; color: #17394e; cursor: pointer; }
 .agent-suggestion:hover,.agent-suggestion.active { background: #eaf4f8; }
 .agent-suggestion small { color: #64748b; }
-.review-content { max-height: 60vh; overflow-y: auto; }
-.review-content section { margin-bottom: 16px; }
-.rv-title { padding-bottom: 6px; margin-bottom: 4px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.rv-row { display: grid; grid-template-columns: 140px minmax(0,1fr); gap: 12px; padding: 7px 0; border-bottom: 1px dashed #eef2f7; overflow-wrap: anywhere; }
-.rv-row span { color: #64748b; font-size: 13px; }
-.rv-row strong { color: #0f172a; font-size: 14px; }
+.review-modal.modal.show { display: flex; align-items: center; justify-content: center; }
+.review-modal .review-dialog { display: flex; flex-direction: column; width: min(100%, 760px); max-width: 760px; max-height: min(88vh, 820px); margin: 0; padding: 0; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 20px; }
+.review-modal .modal-header { flex: 0 0 auto; margin: 0; padding: 26px 76px 6px 28px; border: 0; color: #073761; font-size: 22px; line-height: 1.25; text-align: left; }
+.review-subtitle { flex: 0 0 auto; margin: 0; padding: 0 76px 20px 28px; border-bottom: 1px solid #e8eef4; color: #64748b; font-size: 13px; line-height: 1.5; }
+.review-modal .close { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: 0; padding: 0; border: 0; border-radius: 12px; color: #31536d; background: #eef4f8; box-shadow: none; font-size: 25px; line-height: 1; }
+.review-modal .close:hover:not(:disabled) { color: #fff; background: #003462; transform: none; }
+.review-modal .review-content { flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; padding: 18px 28px 10px; scrollbar-gutter: stable; }
+.review-modal .review-content section { margin: 0 0 14px; padding: 13px 16px 7px; border: 1px solid #e4ebf2; border-radius: 14px; background: #fbfdff; }
+.rv-title { padding-bottom: 9px; margin-bottom: 2px; border-bottom: 1px solid #e5edf4; color: #0b5c86; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rv-row { display: grid; grid-template-columns: minmax(120px, .8fr) minmax(0, 1.5fr); align-items: start; gap: 14px; padding: 9px 0; border-bottom: 1px solid #edf2f7; overflow-wrap: anywhere; }
+.review-modal .rv-row:last-child { border-bottom: 0; }
+.rv-row span { color: #64748b; font-size: 13px; line-height: 1.45; }
+.rv-row strong { color: #172b43; font-size: 14px; font-weight: 700; line-height: 1.45; }
+.review-modal .btn-group-modal { display: grid; flex: 0 0 auto; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; padding: 16px 28px 24px; border-top: 1px solid #e8eef4; background: #fff; }
+.review-modal .btn-group-modal button { min-width: 0; min-height: 50px; margin: 0; padding: 13px 18px; border-radius: 11px; }
+.review-modal .btn-group-modal .review-edit-button { color: #1e3a5f; background: #e8eef5; }
+.review-modal .btn-group-modal .review-edit-button:hover:not(:disabled) { color: #173653; background: #d9e4ef; transform: none; }
 .app-notice { position: fixed; z-index: 2000; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 12px 18px; border-radius: 10px; color: white; background: #16a34a; box-shadow: 0 4px 12px #0003; }
 .app-notice.error { background: #dc2626; }
-@media(max-width:480px){.rv-row{grid-template-columns:1fr;gap:2px}}
+@media(max-width:600px){.review-modal.modal.show{padding:12px}.review-modal .review-dialog{width:100%;max-height:calc(100dvh - 24px);border-radius:16px}.review-modal .modal-header{padding:20px 64px 5px 20px;font-size:19px}.review-subtitle{padding:0 64px 15px 20px;font-size:12px}.review-modal .close{top:11px;right:12px;width:36px;height:36px}.review-modal .review-content{padding:14px 16px 8px}.review-modal .review-content section{margin-bottom:10px;padding:11px 13px 6px}.rv-row{grid-template-columns:1fr;gap:3px;padding:8px 0}.review-modal .btn-group-modal{grid-template-columns:1fr;gap:8px;padding:12px 16px 16px}}
 </style>
