@@ -67,6 +67,17 @@ function itemStyle(item = {}) {
   if (/^#[\da-f]{6}$/i.test(item.iconBg || '')) style['--icon-bg'] = item.iconBg;
   return style;
 }
+function serviceNumberStyle(item = {}) {
+  return /^#[\da-f]{6}$/i.test(item.accent || '') ? { color: item.accent } : {};
+}
+function serviceIconStyle(item = {}) {
+  const background = /^#[\da-f]{6}$/i.test(item.iconBg || '')
+    ? item.iconBg
+    : (/^#[\da-f]{6}$/i.test(item.accent || '') ? item.accent : '');
+  return background
+    ? { backgroundColor: background, boxShadow: `0 12px 24px ${rgba(background, 40)}` }
+    : {};
+}
 function gridStyle(section, minWidth) {
   const desired = Math.max(1, Number(section?.columns) || 1);
   return { gap: `${Number(section?.gap) || 0}px`, '--editor-columns': desired, '--min-card': `${minWidth}px` };
@@ -177,7 +188,7 @@ onUnmounted(() => {
 
         <section v-else-if="section === 'services'" class="services" id="layanan" data-editor-section="services" :style="gridStyle(content.services, 260)">
           <a v-for="(item,index) in content.services.items" :key="item.id" class="service-card" :class="`service-${item.color || 'blue'}`" :href="validHref(item.href) ? item.href : '#layanan'" target="_blank" rel="noopener noreferrer" :data-editor-id="item.id" :data-editor-index="index" :data-editor-width="item.width || 1" :data-editor-col="item.col || 0" :data-editor-row="item.row || 0" :data-editor-row-span="item.rowSpan || 1" :style="itemStyle(item)">
-            <span class="service-number">{{ String(index + 1).padStart(2, '0') }}</span><span class="service-icon"><i :class="icons[item.icon] || icons.file" :style="{ color: item.iconColor || '' }"></i></span><div class="service-body"><h3>{{ item.title }}</h3><p>{{ item.description }}</p></div><span class="service-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+            <span class="service-number" :style="serviceNumberStyle(item)">{{ String(index + 1).padStart(2, '0') }}</span><span class="service-icon" :style="serviceIconStyle(item)"><i :class="icons[item.icon] || icons.file" :style="{ color: item.iconColor || '' }"></i></span><div class="service-body"><h3>{{ item.title }}</h3><p>{{ item.description }}</p></div><span class="service-arrow"><i class="fa-solid fa-arrow-right"></i></span>
           </a>
         </section>
 
