@@ -34,6 +34,18 @@ const matches = computed(() => {
   const query = normalizedName(model.namaAgen);
   return query ? directory.value.filter((item) => normalizedName(item.name).includes(query)).slice(0, 8) : directory.value.slice(0, 8);
 });
+const portOptions = computed(() => {
+  const options = new Map();
+  portNames.forEach((port) => {
+    const value = `PORT ${port}`;
+    options.set(normalizedName(value), value);
+  });
+  directory.value.forEach((agent) => {
+    const value = String(agent.portArea || '').trim().replace(/\s+/g, ' ');
+    if (value) options.set(normalizedName(value), value);
+  });
+  return [...options.values()];
+});
 const needsSize = computed(() => selectedRequests.value.includes('Spanduk Komersial'));
 
 function notify(text, error = false) { notice.text = text; notice.error = error; setTimeout(() => { if (notice.text === text) notice.text = ''; }, 4000); }
@@ -46,7 +58,7 @@ function matchAgent() {
   const name = normalizedName(model.namaAgen);
   const item = directory.value.find((agent) => normalizedName(agent.name) === name);
   if (item) {
-    model.namaAgen = item.name; model.jenisAgen = normalizedAgentType(item.jenisTop); model.portArea = item.portArea || ''; model.kodeTop = item.kodeTop || '';
+    model.namaAgen = item.name; model.jenisAgen = normalizedAgentType(item.jenisTop); model.portArea = String(item.portArea || '').trim().replace(/\s+/g, ' '); model.kodeTop = item.kodeTop || '';
     setOwnership(item.kepemilikan); autoFilledAgent.value = name;
     directoryStatus.value = `Data TOP dan PORT terisi otomatis untuk ${item.name}.`;
   } else if (autoFilledAgent.value) {
@@ -136,7 +148,7 @@ onMounted(async () => {
         <h2>Permintaan Desain</h2>
         <form @submit.prevent="review" novalidate>
           <div class="grid2"><div><label>Nama TOP</label><div class="agen-row"><select v-model="model.jenisAgen" required @change="autoFilledAgent = ''"><option value="">Pilih</option><option>Agen</option><option>Cabang</option><option>PORT</option></select><div class="agent-name-wrap"><input v-model="model.namaAgen" placeholder="Ketik nama TOP" autocomplete="off" aria-autocomplete="list" :aria-expanded="suggestionsOpen" aria-describedby="agentDirectoryStatus" required @input="matchAgent(); suggestionsOpen = true; activeSuggestion = -1" @focus="suggestionsOpen = true" @blur="closeAgentSuggestions" @keydown="onAgentKeydown"><div v-if="suggestionsOpen && matches.length" class="agent-suggestions" role="listbox" aria-label="Pilihan nama TOP"><button v-for="(agent,index) in matches" :key="agent.name" type="button" class="agent-suggestion" :class="{ active: index === activeSuggestion }" role="option" :aria-selected="index === activeSuggestion" @mousedown.prevent="chooseAgent(agent)"><strong>{{ agent.name }}</strong><small>{{ agent.jenisTop }} · {{ agent.portArea }}</small></button></div></div></div><small id="agentDirectoryStatus" class="field-hint" role="status">{{ directoryStatus }}</small></div>
-            <div><label>PORT Area</label><select v-model="model.portArea" required @change="autoFilledAgent = ''"><option value="">Pilih PORT Area</option><option v-for="port in portNames" :key="port" :value="`PORT ${port}`">PORT {{ port }}</option></select></div></div>
+            <div><label>PORT Area</label><select v-model="model.portArea" required @change="autoFilledAgent = ''"><option value="">Pilih PORT Area</option><option v-for="port in portOptions" :key="port" :value="port">{{ port }}</option></select></div></div>
           <input v-model="model.kodeTop" type="hidden">
           <div class="form-group"><label>Kepemilikan</label><div class="status-box row"><label><input v-model="model.statusAgen" type="radio" name="statusAgen" value="Pusat" required @change="autoFilledAgent = ''"> Pusat</label><label><input v-model="model.statusAgen" type="radio" name="statusAgen" value="Independent" required @change="autoFilledAgent = ''"> Independent</label></div></div>
           <div class="grid2"><div><label>Nama Jalan / Patokan</label><input v-model.trim="model.namaJalan" placeholder="Contoh: Jl. Merdeka No.10" required></div><div><label>Nomor Telepon</label><input v-model="model.noTelp" placeholder="08123456789" class="only-number" inputmode="numeric" required @input="model.noTelp = model.noTelp.replace(/\D/g, '')"></div></div>
