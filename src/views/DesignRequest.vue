@@ -85,9 +85,23 @@ function collectData() {
   };
 }
 function review() {
+  const missing = [
+    [!model.jenisAgen, 'Pilih jenis TOP.'],
+    [!model.namaAgen.trim(), 'Isi nama TOP.'],
+    [!model.portArea, 'Pilih PORT Area.'],
+    [!model.statusAgen, 'Pilih kepemilikan.'],
+    [!model.namaJalan.trim(), 'Isi nama jalan atau patokan.'],
+    [!model.noTelp.trim(), 'Isi nomor telepon.'],
+    [!regions.provinceId.value, 'Pilih provinsi.'],
+    [!regions.cityId.value, 'Pilih kabupaten/kota.'],
+    [!regions.districtId.value, 'Pilih kecamatan.'],
+    [!regions.villageId.value, 'Pilih kelurahan/desa.'],
+    [!regions.postalCode.value, 'Kode pos belum tersedia untuk kelurahan ini.'],
+    [needsSize.value && !model.ukuranBanner, 'Pilih ukuran spanduk.'],
+    [needsSize.value && model.ukuranBanner === 'custom' && !model.customUkuran.trim(), 'Isi panjang ukuran custom.']
+  ].find(([isMissing]) => isMissing);
+  if (missing) { notify(missing[1], true); return; }
   const data = collectData();
-  if (!data.kodePos) { notify('Kode pos belum terisi. Pilih Kelurahan/Desa terlebih dahulu.', true); return; }
-  if (needsSize.value && (!model.ukuranBanner || (model.ukuranBanner === 'custom' && !model.customUkuran.trim()))) { notify('Pilih ukuran spanduk terlebih dahulu.', true); return; }
   showReview.value = true;
 }
 async function submit() {
@@ -121,7 +135,7 @@ onMounted(async () => {
     <PortalChrome>
       <div class="card">
         <h2>Permintaan Desain</h2>
-        <form @submit.prevent="review">
+        <form @submit.prevent="review" novalidate>
           <div class="grid2"><div><label>Nama TOP</label><div class="agen-row"><select v-model="model.jenisAgen" required @change="autoFilledAgent = ''"><option value="">Pilih</option><option>Agen</option><option>Cabang</option><option>PORT</option></select><div class="agent-name-wrap"><input v-model="model.namaAgen" placeholder="Ketik nama TOP" autocomplete="off" aria-autocomplete="list" :aria-expanded="suggestionsOpen" aria-describedby="agentDirectoryStatus" required @input="matchAgent(); suggestionsOpen = true; activeSuggestion = -1" @focus="suggestionsOpen = true" @blur="closeAgentSuggestions" @keydown="onAgentKeydown"><div v-if="suggestionsOpen && matches.length" class="agent-suggestions" role="listbox" aria-label="Pilihan nama TOP"><button v-for="(agent,index) in matches" :key="agent.name" type="button" class="agent-suggestion" :class="{ active: index === activeSuggestion }" role="option" :aria-selected="index === activeSuggestion" @mousedown.prevent="chooseAgent(agent)"><strong>{{ agent.name }}</strong><small>{{ agent.jenisTop }} · {{ agent.portArea }}</small></button></div></div></div><small id="agentDirectoryStatus" class="field-hint" role="status">{{ directoryStatus }}</small></div>
             <div><label>PORT Area</label><select v-model="model.portArea" required @change="autoFilledAgent = ''"><option value="">Pilih PORT Area</option><option v-for="port in portNames" :key="port" :value="`PORT ${port}`">PORT {{ port }}</option></select></div></div>
           <input v-model="model.kodeTop" type="hidden">
