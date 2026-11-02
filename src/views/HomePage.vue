@@ -32,6 +32,12 @@ function rgba(hex, opacity = 100) {
   const raw = hex.slice(1);
   return `rgba(${parseInt(raw.slice(0, 2), 16)},${parseInt(raw.slice(2, 4), 16)},${parseInt(raw.slice(4, 6), 16)},${Math.min(100, Math.max(0, opacity)) / 100})`;
 }
+function tint(hex, strength = 0.14) {
+  if (!/^#[\da-f]{6}$/i.test(hex || '')) return '';
+  const value = parseInt(hex.slice(1), 16);
+  const mix = (channel) => Math.round(255 - (255 - channel) * strength);
+  return `rgb(${mix((value >> 16) & 255)}, ${mix((value >> 8) & 255)}, ${mix(value & 255)})`;
+}
 function surfaceStyle(surface = {}) {
   const style = {};
   if (/^#[\da-f]{6}$/i.test(surface.background || '')) {
@@ -44,7 +50,7 @@ function surfaceStyle(surface = {}) {
   return style;
 }
 function itemStyle(item = {}) {
-  return {
+  const style = {
     ...surfaceStyle(item),
     color: item.textColor || '',
     fontSize: item.fontSize ? `${item.fontSize}px` : '',
@@ -54,6 +60,12 @@ function itemStyle(item = {}) {
     gridColumn: `span ${Math.max(1, Number(item.width) || 1)}`,
     gridRow: item.rowSpan > 1 ? `span ${item.rowSpan}` : ''
   };
+  if (/^#[\da-f]{6}$/i.test(item.accent || '')) {
+    style['--c'] = item.accent;
+    style['--c2'] = tint(item.accent);
+  }
+  if (/^#[\da-f]{6}$/i.test(item.iconBg || '')) style['--icon-bg'] = item.iconBg;
+  return style;
 }
 function gridStyle(section, minWidth) {
   const desired = Math.max(1, Number(section?.columns) || 1);
