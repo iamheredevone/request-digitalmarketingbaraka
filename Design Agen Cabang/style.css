@@ -335,6 +335,10 @@ button:disabled {
   backdrop-filter: blur(4px);
 }
 
+.modal.show {
+  display: block;
+}
+
 .modal-content {
   position: relative;
   width: 100%;
