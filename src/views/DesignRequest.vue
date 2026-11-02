@@ -62,8 +62,18 @@ function onAgentKeydown(event) {
   else if (event.key === 'Enter' && activeSuggestion.value >= 0) { event.preventDefault(); chooseAgent(matches.value[activeSuggestion.value]); }
   else if (event.key === 'Escape') suggestionsOpen.value = false;
 }
-function setPackage(value) { allPackage.value = value; selectedRequests.value = value ? [...requests] : []; }
-function toggleRequest() { allPackage.value = selectedRequests.value.length === requests.length; if (!needsSize.value) model.ukuranBanner = ''; }
+function setPackage(checked) {
+  allPackage.value = checked;
+  selectedRequests.value = checked ? [...requests] : [];
+  if (!checked) { model.ukuranBanner = ''; model.customUkuran = ''; }
+}
+function toggleRequest(request, checked) {
+  const selected = new Set(selectedRequests.value);
+  if (checked) selected.add(request); else selected.delete(request);
+  selectedRequests.value = requests.filter((item) => selected.has(item));
+  allPackage.value = selectedRequests.value.length === requests.length;
+  if (!needsSize.value) { model.ukuranBanner = ''; model.customUkuran = ''; }
+}
 function closeModals() { showDesign.value = false; showReview.value = false; }
 function collectData() {
   return {
@@ -121,7 +131,7 @@ onMounted(async () => {
           <div class="grid2"><div><label>Kecamatan</label><select :value="regions.districtId.value" required :disabled="!regions.cityId.value" @change="regions.selectDistrict($event.target.value)"><option value="">Pilih Kecamatan</option><option v-for="item in regions.districts.value" :key="item.id" :value="item.id">{{ item.name }}</option></select></div><div><label>Kelurahan / Desa</label><select v-model="regions.villageId.value" required :disabled="!regions.districtId.value"><option value="">Pilih Kelurahan/Desa</option><option v-for="item in regions.villages.value" :key="item.id" :value="item.id">{{ item.name }}</option></select></div></div>
           <div><label>Kode Pos</label><input :value="regions.postalCode.value" placeholder="Otomatis terisi" class="kodepos-input" readonly required></div>
           <div class="lihat-contoh" role="button" tabindex="0" @click="showDesign = true" @keydown.enter="showDesign = true"><i class="bi bi-eye"></i> Lihat Contoh Design</div>
-          <label>Jenis Permintaan Tambahan</label><div class="checkbox-group"><label v-for="(request,index) in requests" :key="request"><input v-model="selectedRequests" type="checkbox" :value="request" @change="toggleRequest"> {{ ['Brosur Cetak','Papan Nama Luar (Eksterior)','Spanduk Komersial','Papan Meja, Papan Dinding (Interior)'][index] }}</label><div style="font-size:12px;color:#64748b;margin:-6px 0 10px 30px"><i>*Pendistribusian dilakukan bertahap dari Tim GA</i></div><label style="border-top:1px solid #e2e8f0;padding-top:10px"><input v-model="allPackage" type="checkbox" @change="setPackage(allPackage)"> <b>Paket Cabang / Agen Baru</b></label></div>
+          <label>Jenis Permintaan Tambahan</label><div class="checkbox-group"><label v-for="(request,index) in requests" :key="request"><input type="checkbox" :value="request" :checked="selectedRequests.includes(request)" @change="toggleRequest(request, $event.target.checked)"> {{ ['Brosur Cetak','Papan Nama Luar (Eksterior)','Spanduk Komersial','Papan Meja, Papan Dinding (Interior)'][index] }}</label><div style="font-size:12px;color:#64748b;margin:-6px 0 10px 30px"><i>*Pendistribusian dilakukan bertahap dari Tim GA</i></div><label style="border-top:1px solid #e2e8f0;padding-top:10px"><input type="checkbox" :checked="allPackage" @change="setPackage($event.target.checked)"> <b>Paket Cabang / Agen Baru</b></label></div>
           <div v-if="needsSize" id="ukuranContainer" style="display:block"><label>Ukuran Spanduk Komersial</label><select v-model="model.ukuranBanner" required><option value="">Pilih ukuran</option><option value="3:1">3:1</option><option value="2:1">2:1</option><option value="1:1">1:1</option><option value="custom">Custom Ukuran</option></select><input v-if="model.ukuranBanner === 'custom'" v-model.trim="model.customUkuran" type="text" style="margin-top:10px" placeholder="Contoh: Panjang 2 meter (Untuk ukuran custom cukup masukkan panjangnya saja)" required></div>
           <label>Deskripsi Tambahan</label><textarea v-model.trim="model.deskripsi" rows="3" placeholder="Contoh: Plang Banner ukuran 3x1 meter"></textarea>
           <div class="note-box"><div class="note-title"><i class="bi bi-info-circle-fill"></i> Informasi Pemrosesan</div><div class="note-content"><ul><li><b>Cabang / Agen Pusat (Request Cetak)</b><br>Permintaan diteruskan ke <b>Tim GA Pusat</b> untuk produksi &amp; distribusi.</li><li><b>Cabang / Agen Independent (Request Softfile)</b><br>Permintaan diteruskan ke kontak Admin di form untuk cetak mandiri.</li></ul></div></div>
