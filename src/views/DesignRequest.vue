@@ -23,6 +23,13 @@ const directoryStatus = ref('Memuat daftar nama cabang…');
 const model = reactive({ jenisAgen: '', namaAgen: '', portArea: '', kodeTop: '', statusAgen: '', namaJalan: '', noTelp: '', ukuranBanner: '', customUkuran: '', deskripsi: '' });
 const portNames = ['BOGOR','SOLOK','CIKARANG','BANDUNG','DELISERDANG','LEGUNDI','JEMBRANA','MARUNDA','TANGERANG','CIPAYUNG','MAKASSAR','PALEMBANG','PEKANBARU','BANJARMASIN','KALIWUNGU','MADIUN','PROBOLINGGO','LAMPUNG','PEJAGAN','PONTIANAK','BALIKPAPAN'];
 const normalizedName = (value) => String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('id-ID');
+function normalizedAgentType(value) {
+  const type = normalizedName(value);
+  if (type === 'agen') return 'Agen';
+  if (type === 'cabang') return 'Cabang';
+  if (type === 'port') return 'PORT';
+  return '';
+}
 const matches = computed(() => {
   const query = normalizedName(model.namaAgen);
   return query ? directory.value.filter((item) => normalizedName(item.name).includes(query)).slice(0, 8) : directory.value.slice(0, 8);
@@ -39,7 +46,7 @@ function matchAgent() {
   const name = normalizedName(model.namaAgen);
   const item = directory.value.find((agent) => normalizedName(agent.name) === name);
   if (item) {
-    model.namaAgen = item.name; model.jenisAgen = item.jenisTop || ''; model.portArea = item.portArea || ''; model.kodeTop = item.kodeTop || '';
+    model.namaAgen = item.name; model.jenisAgen = normalizedAgentType(item.jenisTop); model.portArea = item.portArea || ''; model.kodeTop = item.kodeTop || '';
     setOwnership(item.kepemilikan); autoFilledAgent.value = name;
     directoryStatus.value = `Data TOP dan PORT terisi otomatis untuk ${item.name}.`;
   } else if (autoFilledAgent.value) {
